@@ -146,7 +146,10 @@ class UsbPtpSession {
         }
 
         val data = buffer.array()
-        Log.d(PtpConstants.LOG_TAG, "发送命令: opCode=0x${opCode.code.toString(16).padStart(4, '0')}, tId=$tId")
+        Log.d(
+            PtpConstants.LOG_TAG,
+            "发送命令: opCode=0x${opCode.code.toString(16).padStart(4, '0')}, tId=$tId"
+        )
         Log.d(PtpConstants.LOG_TAG, "命令包字节: ${data.joinToString(" ") { "%02x".format(it) }}")
         Log.d(PtpConstants.LOG_TAG, "bulkTransfer(OUT) 返回: $sendLen (期望 $totalLen)")
 

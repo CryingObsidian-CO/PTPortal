@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
                                     "PTPortal_PTP",
                                     "sdioGetExtDeviceInfo 第 $retryCount/$maxRetry 次尝试"
                                 )
-                                extInfoOk = ptpSession.sdioGetExtDeviceInfo(version = 0x0001)
+                                extInfoOk = ptpSession.sdioGetExtDeviceInfo(0x0012c)
                                 if (!extInfoOk) {
                                     if (retryCount < maxRetry) {
                                         Thread.sleep(100)
