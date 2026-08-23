@@ -1,4 +1,4 @@
-package cn.ykcryobs.ptportal.ptp
+package cn.ykcryobs.ptportal.ptp.model
 
 import cn.ykcryobs.ptportal.ptp.constants.PtpResponseCode
 
@@ -34,6 +34,4 @@ data class PtpResponse(
         result = 31 * result + params.contentHashCode()
         return result
     }
-
-
 }

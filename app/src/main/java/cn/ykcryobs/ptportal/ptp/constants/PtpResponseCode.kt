@@ -9,7 +9,8 @@ sealed class PtpResponseCode {
         SESSION_NOT_OPEN(0x2003),  // session 未打开
         PARAMETER_NOT_SUPPORTED(0x2006), // 参数不支持
         ACCESS_DENIED(0x200F),     // 无权限/被拒绝
-        DEVICE_BUSY(0x2019);       // 设备正忙
+        DEVICE_BUSY(0x2019),       // 设备正忙
+        SESSION_ALREADY_OPEN(0x201E); // session 已打开
     }
 
     data class Known(val value: Code) : PtpResponseCode()
@@ -29,6 +30,7 @@ sealed class PtpResponseCode {
         val PARAMETER_NOT_SUPPORTED get() = Known(Code.PARAMETER_NOT_SUPPORTED)
         val ACCESS_DENIED get() = Known(Code.ACCESS_DENIED)
         val DEVICE_BUSY get() = Known(Code.DEVICE_BUSY)
+        val SESSION_ALREADY_OPEN get() = Known(Code.SESSION_ALREADY_OPEN)
     }
 
     val code: Int

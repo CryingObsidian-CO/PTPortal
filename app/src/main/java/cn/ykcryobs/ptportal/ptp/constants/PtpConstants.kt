@@ -13,7 +13,7 @@ object PtpConstants {
     const val USB_TIMEOUT = 5000
 
     // NOTE 太大会导致尝试读取的时候返回 -1
-    const val USB_TRANSFER_BUFFER = 512  // 512
-    const val LIVEVIEW_BUFFER = 256 * 1024      // 256KB
+    const val USB_TRANSFER_BUFFER = 16 * 1024     // 16KB
+    const val LIVEVIEW_BUFFER = 256 * 1024        // 256KB
 
 }

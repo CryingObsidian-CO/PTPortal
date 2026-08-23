@@ -1,4 +1,4 @@
-package cn.ykcryobs.ptportal.ptp
+package cn.ykcryobs.ptportal.ptp.model
 
 import cn.ykcryobs.ptportal.ptp.constants.PtpResponseCode
 
