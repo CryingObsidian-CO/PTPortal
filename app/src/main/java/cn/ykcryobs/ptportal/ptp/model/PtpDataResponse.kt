@@ -1,9 +1,10 @@
 package cn.ykcryobs.ptportal.ptp.model
 
+import cn.ykcryobs.ptportal.ptp.constants.PtpRespCode
 import cn.ykcryobs.ptportal.ptp.constants.PtpResponseCode
 
 data class PtpDataResponse(
-    val respCode: PtpResponseCode, val transactionId: Int, val dataPayload: ByteArray
+    val respCode: PtpRespCode, val transactionId: Int, val dataPayload: ByteArray
 ) {
     companion object {
         operator fun invoke(

@@ -4,13 +4,19 @@ import android.util.Log
 import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
 import cn.ykcryobs.ptportal.ptp.model.DevicePropInfo
 import cn.ykcryobs.ptportal.ptp.model.IsEnabled
-import cn.ykcryobs.ptportal.ptp.model.SdiExtDevicePropInfo
+import cn.ykcryobs.ptportal.ptp.model.PropForm
+import cn.ykcryobs.ptportal.ptp.model.PropValue
+import cn.ykcryobs.ptportal.ptp.model.SdioExtDevicePropInfo
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 object SdioExtDevicePropInfoParser {
 
-    fun parse(data: ByteArray): SdiExtDevicePropInfo? {
+    private const val TYPE_STR = 0xFFFF
+    private const val TYPE_ARRAY_MIN = 0x4001
+    private const val TYPE_ARRAY_MAX = 0x400A
+
+    fun parse(data: ByteArray): SdioExtDevicePropInfo? {
         if (data.size < 8) return null
         try {
             val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
@@ -33,7 +39,7 @@ object SdioExtDevicePropInfoParser {
                 PtpConstants.LOG_TAG,
                 "SdiExtDevicePropInfo 解析完成: numOfElements=$numOfElements, parsed=${properties.size}"
             )
-            return SdiExtDevicePropInfo(numOfElements, properties)
+            return SdioExtDevicePropInfo(numOfElements, properties)
         } catch (e: Exception) {
             Log.e(PtpConstants.LOG_TAG, "SdiExtDevicePropInfo 解析异常: ${e.message}", e)
             return null
@@ -43,54 +49,24 @@ object SdioExtDevicePropInfoParser {
     private fun parseOne(buffer: ByteBuffer): DevicePropInfo? {
         val propertyCode = buffer.short.toInt() and 0xFFFF
         val dataType = buffer.short.toInt() and 0xFFFF
-        val getSet = buffer.get().toInt() and 0xFF
+        val getSetFlag = buffer.get().toInt() and 0xFF
         val isEnable = buffer.get().toInt() and 0xFF
 
-        val isArray = dataType in 0x4001..0x400A
-        val scalarDt = if (isArray) dataType and 0x0FFF else dataType
+        val scalarDt =
+            if (dataType in TYPE_ARRAY_MIN..TYPE_ARRAY_MAX) dataType and 0x0FFF else dataType
 
-        val defaultValue: Long
-        val currentValue: Long
-
-        if (isArray) {
-            defaultValue = readArray(buffer, scalarDt) ?: run {
-                Log.e(
-                    PtpConstants.LOG_TAG,
-                    "parseOne:  读取默认值失败，放弃本次数据，propCode=0x${propertyCode.toString(16)}, dataType=0x${
-                        dataType.toString(16)
-                    }"
-                )
-                return null
-            }
-            currentValue = readArray(buffer, scalarDt) ?: run {
-                Log.e(
-                    PtpConstants.LOG_TAG,
-                    "parseOne: 读取当前值失败，放弃本次数据，propCode=0x${propertyCode.toString(16)}, dataType=0x${
-                        dataType.toString(16)
-                    }"
-                )
-                return null
-            }
-        } else {
-            defaultValue = readScalar(buffer, scalarDt) ?: run {
-                Log.e(
-                    PtpConstants.LOG_TAG,
-                    "parseOne: 读取默认值失败，放弃本次数据，propCode=0x${propertyCode.toString(16)}, dataType=0x${
-                        dataType.toString(16)
-                    }"
-                )
-                return null
-            }
-            currentValue = readScalar(buffer, scalarDt) ?: run {
-                Log.e(
-                    PtpConstants.LOG_TAG,
-                    "parseOne: 读取当前值失败，放弃本次数据，propCode=0x${propertyCode.toString(16)}, dataType=0x${
-                        dataType.toString(16)
-                    }"
-                )
-                return null
-            }
+        fun readValueOrFail(what: String): PropValue? = readValue(buffer, dataType) ?: run {
+            Log.e(
+                PtpConstants.LOG_TAG,
+                "parseOne: 读取${what}失败，放弃本次数据，propCode=0x${propertyCode.toString(16)}, dataType=0x${
+                    dataType.toString(16)
+                }"
+            )
+            null
         }
+
+        val defaultValue = readValueOrFail("默认值") ?: return null
+        val currentValue = readValueOrFail("当前值") ?: return null
 
         if (buffer.remaining() < 1) {
             Log.e(
@@ -99,48 +75,74 @@ object SdioExtDevicePropInfoParser {
             )
             return null
         }
-        val formFlag = buffer.get().toInt() and 0xFF
+        val form = when (val formFlag = buffer.get().toInt() and 0xFF) {
+            0x01 -> {
+                val min = readScalar(buffer, scalarDt)
+                val step = readScalar(buffer, scalarDt)
+                val max = readScalar(buffer, scalarDt)
+                if (min == null || step == null || max == null) {
+                    Log.e(
+                        PtpConstants.LOG_TAG,
+                        "parseOne FORM_RANGE: 读取 min/step/max 失败, propCode=0x${
+                            propertyCode.toString(
+                                16
+                            )
+                        }"
+                    )
+                    return null
+                }
+                PropForm.Range(min, step, max)
+            }
 
-        var setValues = emptyList<Long>()
-        var getSetValues = emptyList<Long>()
-        if (formFlag == 0x01) {
-            val scalarSize = dataTypeSize(scalarDt)
-            val skipBytes = scalarSize * 3
-            if (buffer.remaining() < skipBytes) {
-                buffer.position(buffer.position() + buffer.remaining())
-            } else {
-                buffer.position(buffer.position() + skipBytes)
+            0x02 -> {
+                val setOnly = readValueList(buffer, dataType) ?: run {
+                    Log.e(
+                        PtpConstants.LOG_TAG,
+                        "parseOne FORM_ENUM: 读取 Set‑Only 列表失败, propCode=0x${
+                            propertyCode.toString(16)
+                        }"
+                    )
+                    return null
+                }
+                val getSet = readValueList(buffer, dataType) ?: run {
+                    Log.e(
+                        PtpConstants.LOG_TAG,
+                        "parseOne FORM_ENUM: 读取 GetSet enum 列表失败, propCode=0x${
+                            propertyCode.toString(16)
+                        }"
+                    )
+                    return null
+                }
+                PropForm.EnumSet(setOnly, getSet)
             }
-        } else if (formFlag == 0x02) {
-            setValues = readEnumList(buffer, scalarDt) ?: run {
-                Log.e(
-                    PtpConstants.LOG_TAG, "parseOne FORM_ENUM: 读取 Set‑Only 列表失败, propCode=0x${
-                        propertyCode.toString(16)
-                    }"
-                )
-                return null
-            }
-            getSetValues = readEnumList(buffer, scalarDt) ?: run {
-                Log.e(
-                    PtpConstants.LOG_TAG,
-                    "parseOne FORM_ENUM: 读取 GetSet enum 列表失败, propCode=0x${
-                        propertyCode.toString(16)
-                    }"
-                )
-                return null
+
+            else -> {
+                if (formFlag != 0x00) {
+                    Log.w(
+                        PtpConstants.LOG_TAG,
+                        "parseOne: 未知 formFlag=$formFlag, propCode=0x${propertyCode.toString(16)}"
+                    )
+                }
+                PropForm.None
             }
         }
 
         return DevicePropInfo(
             propertyCode,
             dataType,
-            getSet == 1,
+            getSetFlag == 1,
             IsEnabled.fromCode(isEnable),
             defaultValue,
             currentValue,
-            setValues,
-            getSetValues,
+            form,
         )
+    }
+
+    /** 按 dataType 分派读取一个完整属性值：字符串 / 数组 / 标量 */
+    private fun readValue(buffer: ByteBuffer, dataType: Int): PropValue? = when {
+        dataType == TYPE_STR -> readStr(buffer)?.let { PropValue.Str(it) }
+        dataType in TYPE_ARRAY_MIN..TYPE_ARRAY_MAX -> readArrayValue(buffer, dataType and 0x0FFF)
+        else -> readScalar(buffer, dataType)?.let { PropValue.Scalar(it) }
     }
 
     private fun readScalar(buffer: ByteBuffer, dataType: Int): Long? {
@@ -153,16 +155,6 @@ object SdioExtDevicePropInfoParser {
             0x0006 -> (buffer.int.toLong() and 0xFFFFFFFFL)          // UINT32
             0x0007 -> buffer.long                                     // INT64
             0x0008 -> buffer.long                                     // UINT64
-            0xFFFF -> { // STR: uint16 length + UTF-16LE chars
-                val len = buffer.get().toInt() and 0xFFFF
-                var skip = len * 2
-
-                if (buffer.remaining() < skip) {
-                    skip = buffer.remaining()
-                }
-                buffer.position(buffer.position() + skip)
-                0L
-            }
 
             else -> {
                 Log.e(
@@ -173,53 +165,54 @@ object SdioExtDevicePropInfoParser {
         }
     }
 
-    private fun readArray(buffer: ByteBuffer, elementDt: Int): Long? {
+    /** PTP 字符串：UInt8 字符数 + UTF-16LE 字符序列 */
+    private fun readStr(buffer: ByteBuffer): String? {
+        if (buffer.remaining() < 1) return null
+        val numChars = buffer.get().toInt() and 0xFF
+        if (buffer.remaining() < numChars * 2) return null
+        val chars = CharArray(numChars) { buffer.short.toInt().toChar() }
+        return String(chars).trimEnd('\u0000')
+    }
+
+    /** 数组：UInt32 元素个数 + 元素序列 */
+    private fun readArrayValue(buffer: ByteBuffer, elementDt: Int): PropValue? {
         if (buffer.remaining() < 4) {
-            Log.e(PtpConstants.LOG_TAG, "readArray: buffer 长度不足")
+            Log.e(PtpConstants.LOG_TAG, "readArrayValue: buffer 长度不足")
             return null
         }
         val count = buffer.int.toLong() and 0xFFFFFFFFL
-        val elemSize = dataTypeSize(elementDt)
-        if (elemSize <= 0) {
-            Log.e(PtpConstants.LOG_TAG, "readArray: 未知的数据类型=0x${elementDt.toString(16)}")
-            return null
+        val items = mutableListOf<Long>()
+        repeat(count.toInt()) {
+            val item = readScalar(buffer, elementDt) ?: run {
+                Log.e(
+                    PtpConstants.LOG_TAG,
+                    "readArrayValue: 元素读取失败, elementDt=0x${elementDt.toString(16)}"
+                )
+                return null
+            }
+            items.add(item)
         }
-        val skip = count * elemSize
-        // NOTE 暂时没有这类数据，所以直接跳过读取，消费掉 buffer 就可以
-        if (buffer.remaining() < skip) {
-            buffer.position(buffer.position() + buffer.remaining())
-        } else {
-            buffer.position(buffer.position() + skip.toInt())
-        }
-        return 0L
+        return PropValue.ArrayValue(items)
     }
 
-    private fun readEnumList(buffer: ByteBuffer, scalarDt: Int): List<Long>? {
-        if (buffer.remaining() < 2) if (buffer.remaining() < 2) {
-            Log.e(PtpConstants.LOG_TAG, "readEnumList: buffer 长度不足")
+    /** 枚举列表：UInt16 个数 + 值序列，元素类型与属性 dataType 一致 */
+    private fun readValueList(buffer: ByteBuffer, dataType: Int): List<PropValue>? {
+        if (buffer.remaining() < 2) {
+            Log.e(PtpConstants.LOG_TAG, "readValueList: buffer 长度不足")
             return null
         }
         val count = buffer.short.toInt() and 0xFFFF
-        val values = mutableListOf<Long>()
+        val values = mutableListOf<PropValue>()
         repeat(count) { idx ->
-            val item = readScalar(buffer, scalarDt)
-            if (item == null) {
+            val item = readValue(buffer, dataType) ?: run {
                 Log.e(
                     PtpConstants.LOG_TAG,
-                    "readEnumList: readScalar fail at index=$idx, scalarDt=0x${scalarDt.toString(16)}"
+                    "readValueList: readValue fail at index=$idx, dataType=0x${dataType.toString(16)}"
                 )
                 return null
             }
             values.add(item)
         }
         return values
-    }
-
-    private fun dataTypeSize(dt: Int): Int = when (dt) {
-        0x0001, 0x0002 -> 1
-        0x0003, 0x0004 -> 2
-        0x0005, 0x0006 -> 4
-        0x0007, 0x0008 -> 8
-        else -> 0
     }
 }

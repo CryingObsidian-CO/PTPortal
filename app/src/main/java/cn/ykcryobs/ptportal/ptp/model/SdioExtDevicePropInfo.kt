@@ -1,6 +1,6 @@
 package cn.ykcryobs.ptportal.ptp.model
 
-data class SdiExtDevicePropInfo(
+data class SdioExtDevicePropInfo(
     val numOfElements: Long,
     val properties: List<DevicePropInfo>,
 )

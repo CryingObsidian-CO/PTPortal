@@ -4,14 +4,18 @@ import android.util.Log
 import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
 import cn.ykcryobs.ptportal.ptp.constants.PtpResponseCode
 import cn.ykcryobs.ptportal.ptp.constants.PtpStandardOpCode
+import cn.ykcryobs.ptportal.ptp.constants.SdioPropCode
+import cn.ykcryobs.ptportal.ptp.constants.DisplayStringListType
 import cn.ykcryobs.ptportal.ptp.model.ExtDeviceInfoResult
 import cn.ykcryobs.ptportal.ptp.model.IsEnabled
-import cn.ykcryobs.ptportal.ptp.model.SdiExtDevicePropInfo
+import cn.ykcryobs.ptportal.ptp.model.SdioExtDevicePropInfo
+import cn.ykcryobs.ptportal.ptp.model.SdioDisplayStringList
 import cn.ykcryobs.ptportal.ptp.parser.SdioExtDevicePropInfoParser
+import cn.ykcryobs.ptportal.ptp.parser.SdioDisplayStringListParser
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-class SdioHandshake(private val session: PtpSession) {
+class SdioManager(private val session: PtpSession) {
 
     fun sdioConnect(phase: Int): Boolean {
         val (resp) = session.sendCommandWithDataIn(
@@ -69,7 +73,7 @@ class SdioHandshake(private val session: PtpSession) {
 
     fun getAllExtDevicePropInfo(
         onlyDifference: Boolean = false, enableExtendedProps: Boolean = true
-    ): SdiExtDevicePropInfo? {
+    ): SdioExtDevicePropInfo? {
         val flag1 = if (onlyDifference) 0x01 else 0x00
         val flag2 = if (enableExtendedProps) 0x01 else 0x00
         val (resp, _, data) = session.sendCommandWithDataIn(
@@ -89,28 +93,50 @@ class SdioHandshake(private val session: PtpSession) {
                 PtpConstants.LOG_TAG,
                 "=== GetAllExtDevicePropInfo (${result.properties.size} 个属性) ==="
             )
-            for (prop in result.properties) {
+            for (prop in result.properties.sortedBy { it.propertyCode }) {
                 val enableStr = when (prop.isEnabled) {
                     IsEnabled.INVALID -> "invalid"
                     IsEnabled.VALID -> "valid"
                     IsEnabled.DISPLAY_ONLY -> "displayOnly"
                 }
+                val propCode = SdioPropCode.fromCode(prop.propertyCode)
                 Log.d(
                     PtpConstants.LOG_TAG,
-                    "Prop 0x%04X | type=0x%04X | %s | %s | current=0x%X | default=0x%X | set=%d | getSet=%d".format(
-                        prop.propertyCode,
+                    "Prop %s | type=0x%04X | %s | %s | current=%s | default=%s | form=%s".format(
+                        propCode,
                         prop.dataType,
                         if (prop.isSettable) "RW" else "RO",
                         enableStr,
-                        prop.currentValue,
-                        prop.defaultValue,
-                        prop.setValues.size,
-                        prop.getSetValues.size,
+                        propCode.labelOf(prop.currentValue),
+                        propCode.labelOf(prop.defaultValue),
+                        prop.form,
                     )
                 )
             }
         }
         return result
+    }
+
+    fun getDisplayStringList(type: DisplayStringListType): SdioDisplayStringList? {
+        val (resp, _, data) = session.sendCommandWithDataIn(
+            PtpStandardOpCode.SDIO_GET_DISPLAY_STRING_LIST, type.code
+        )
+        if (resp != PtpResponseCode.OK) {
+            Log.e(PtpConstants.LOG_TAG, "SDIO_GetDisplayStringList 失败, type=${type}, resp=$resp")
+            return null
+        }
+
+        val stringList = SdioDisplayStringListParser.parse(data)
+        if (stringList == null) {
+            Log.e(PtpConstants.LOG_TAG, "SDIO_GetDisplayStringList 解析失败")
+            return null
+        }
+
+        Log.d(
+            PtpConstants.LOG_TAG,
+            "SDIO_GetDisplayStringList 成功: type=$type, strings=${stringList.displayStringList.size}"
+        )
+        return stringList
     }
 
     fun performFullHandshake(): Boolean {

@@ -16,8 +16,7 @@ data class DevicePropInfo(
     val dataType: Int,
     val isSettable: Boolean,
     val isEnabled: IsEnabled,
-    val defaultValue: Long,
-    val currentValue: Long,
-    val setValues: List<Long>,
-    val getSetValues: List<Long>,
+    val defaultValue: PropValue,
+    val currentValue: PropValue,
+    val form: PropForm,
 )

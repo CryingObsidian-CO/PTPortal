@@ -14,7 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import cn.ykcryobs.ptportal.ptp.PtpSession
-import cn.ykcryobs.ptportal.ptp.SdioHandshake
+import cn.ykcryobs.ptportal.ptp.SdioManager
 import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
 import cn.ykcryobs.ptportal.ui.theme.PTPortalTheme
 import cn.ykcryobs.ptportal.usb.UsbDeviceDetector
@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
 
     private val transport = UsbTransport()
     private val ptpSession = PtpSession(transport)
-    private val sdioHandshake = SdioHandshake(ptpSession)
+    private val sdioManager = SdioManager(ptpSession)
 
     private lateinit var deviceDetector: UsbDeviceDetector
     private lateinit var permissionHelper: UsbPermissionHelper
@@ -98,7 +98,7 @@ class MainActivity : ComponentActivity() {
                     return@Thread
                 }
 
-                val handshakeOk = sdioHandshake.performFullHandshake()
+                val handshakeOk = sdioManager.performFullHandshake()
                 if (!handshakeOk) {
                     Log.e(PtpConstants.LOG_TAG, "SDIO 握手失败")
                     ptpSession.closeSession()
