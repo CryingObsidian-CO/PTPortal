@@ -71,4 +71,35 @@
 
   <!-- Settings screen -->
   <string name="settings_title">设置</string>
+  <string name="settings_group_connection">连接偏好</string>
+  <string name="settings_group_capture">拍摄偏好</string>
+  <string name="settings_group_appearance">外观</string>
+  <string name="settings_group_about">关于</string>
+  <string name="settings_default_connection">默认连接方式</string>
+  <string name="settings_connection_auto">自动</string>
+  <string name="settings_connection_usb">USB</string>
+  <string name="settings_connection_wifi">无线</string>
+  <string name="settings_auto_reconnect">自动重连</string>
+  <string name="settings_auto_reconnect_hint">重新打开应用后尝试恢复上一次相机连接</string>
+  <string name="settings_scan_interval">扫描间隔</string>
+  <string name="settings_scan_interval_value">%1$d 秒</string>
+  <string name="settings_save_path">默认保存路径</string>
+  <string name="settings_transfer_quality">传输质量预设</string>
+  <string name="settings_quality_standard">标准</string>
+  <string name="settings_quality_high">高质量</string>
+  <string name="settings_quality_original">原图</string>
+  <string name="settings_theme_mode">主题模式</string>
+  <string name="settings_theme_system">跟随系统</string>
+  <string name="settings_theme_light">浅色</string>
+  <string name="settings_theme_dark">深色</string>
+  <string name="settings_language">语言</string>
+  <string name="settings_language_system">系统语言</string>
+  <string name="settings_language_chinese">中文</string>
+  <string name="settings_language_english">English</string>
+  <string name="settings_version_info">版本信息</string>
+  <string name="settings_open_licenses">开源许可</string>
+  <string name="settings_licenses_title">开源许可</string>
+  <string name="settings_licenses_content">AndroidX / Jetpack Compose / Material Components\nApache License 2.0\n\nKotlin\nApache License 2.0\n\n本页面为许可摘要，完整许可证文本将在发布前随应用打包。</string>
+  <string name="settings_action_view">查看</string>
+  <string name="settings_action_close">关闭</string>
 </resources>

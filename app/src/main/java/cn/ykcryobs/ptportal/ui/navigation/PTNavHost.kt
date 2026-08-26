@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import cn.ykcryobs.ptportal.domain.preferences.UserPreferencesRepository
 import cn.ykcryobs.ptportal.ui.screens.connection.ConnectionScreen
 import cn.ykcryobs.ptportal.ui.screens.files.FilesScreen
 import cn.ykcryobs.ptportal.ui.screens.remote.RemoteScreen
@@ -13,6 +14,7 @@ import cn.ykcryobs.ptportal.ui.screens.settings.SettingsScreen
 @Composable
 fun PTNavHost(
     navController: NavHostController,
+    userPreferencesRepository: UserPreferencesRepository,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -30,7 +32,7 @@ fun PTNavHost(
             FilesScreen()
         }
         composable(PTDestinations.Settings.route) {
-            SettingsScreen()
+            SettingsScreen(repository = userPreferencesRepository)
         }
     }
 }

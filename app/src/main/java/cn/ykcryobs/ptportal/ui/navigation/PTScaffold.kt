@@ -20,12 +20,13 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import cn.ykcryobs.ptportal.domain.preferences.UserPreferencesRepository
 
 private val BottomNavMaxWidth = 600
 private val RailNavMaxWidth = 840
 
 @Composable
-fun PTScaffold() {
+fun PTScaffold(userPreferencesRepository: UserPreferencesRepository) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
@@ -72,6 +73,7 @@ fun PTScaffold() {
         ) { innerPadding ->
             PTNavHost(
                 navController = navController,
+                userPreferencesRepository = userPreferencesRepository,
                 modifier = Modifier.fillMaxSize().padding(innerPadding),
             )
         }
@@ -109,6 +111,7 @@ fun PTScaffold() {
             }
             PTNavHost(
                 navController = navController,
+                userPreferencesRepository = userPreferencesRepository,
                 modifier = Modifier.fillMaxSize().weight(1f),
             )
         }
