@@ -43,6 +43,27 @@
   <string name="remote_shutter">快门</string>
   <string name="remote_record">录制</string>
   <string name="remote_not_connected">请先连接相机</string>
+  <string name="remote_params_title">拍摄参数</string>
+  <string name="remote_param_aperture">光圈</string>
+  <string name="remote_param_shutter">快门</string>
+  <string name="remote_param_iso">ISO</string>
+  <string name="remote_param_exp_comp">曝光补偿</string>
+  <string name="remote_param_mode">拍摄模式</string>
+  <string name="remote_param_wb">白平衡</string>
+  <string name="remote_mode_single">单拍</string>
+  <string name="remote_mode_continuous">连拍</string>
+  <string name="remote_mode_timer">定时</string>
+  <string name="remote_mode_video">视频</string>
+  <string name="remote_wb_auto">自动</string>
+  <string name="remote_wb_daylight">日光</string>
+  <string name="remote_wb_shade">阴影</string>
+  <string name="remote_wb_cloudy">阴天</string>
+  <string name="remote_wb_tungsten">钨丝灯</string>
+  <string name="remote_wb_fluorescent">荧光灯</string>
+  <string name="remote_wb_flash">闪光灯</string>
+  <string name="remote_wb_custom">自定义</string>
+  <string name="remote_grid_toggle">网格线</string>
+  <string name="remote_recording">%1$02d:%2$02d</string>
 
   <!-- Files screen -->
   <string name="files_title">文件</string>

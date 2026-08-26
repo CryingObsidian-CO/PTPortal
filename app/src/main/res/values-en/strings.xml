@@ -43,6 +43,27 @@
   <string name="remote_shutter">Shutter</string>
   <string name="remote_record">Record</string>
   <string name="remote_not_connected">Please connect a camera first</string>
+  <string name="remote_params_title">Camera settings</string>
+  <string name="remote_param_aperture">Aperture</string>
+  <string name="remote_param_shutter">Shutter</string>
+  <string name="remote_param_iso">ISO</string>
+  <string name="remote_param_exp_comp">Exposure compensation</string>
+  <string name="remote_param_mode">Shooting mode</string>
+  <string name="remote_param_wb">White balance</string>
+  <string name="remote_mode_single">Single</string>
+  <string name="remote_mode_continuous">Burst</string>
+  <string name="remote_mode_timer">Timer</string>
+  <string name="remote_mode_video">Video</string>
+  <string name="remote_wb_auto">Auto</string>
+  <string name="remote_wb_daylight">Daylight</string>
+  <string name="remote_wb_shade">Shade</string>
+  <string name="remote_wb_cloudy">Cloudy</string>
+  <string name="remote_wb_tungsten">Tungsten</string>
+  <string name="remote_wb_fluorescent">Fluorescent</string>
+  <string name="remote_wb_flash">Flash</string>
+  <string name="remote_wb_custom">Custom</string>
+  <string name="remote_grid_toggle">Grid lines</string>
+  <string name="remote_recording">%1$02d:%2$02d</string>
 
   <!-- Files screen -->
   <string name="files_title">Files</string>
