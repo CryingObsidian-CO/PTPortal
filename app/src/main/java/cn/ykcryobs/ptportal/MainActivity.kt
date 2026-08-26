@@ -6,16 +6,10 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import cn.ykcryobs.ptportal.ptp.PtpSession
 import cn.ykcryobs.ptportal.ptp.SdioManager
 import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
+import cn.ykcryobs.ptportal.ui.navigation.PTScaffold
 import cn.ykcryobs.ptportal.ui.theme.PTPortalTheme
 import cn.ykcryobs.ptportal.usb.UsbDeviceDetector
 import cn.ykcryobs.ptportal.usb.UsbPermissionHelper
@@ -52,11 +46,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             PTPortalTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android", modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                PTScaffold()
             }
         }
     }
@@ -119,20 +109,5 @@ class MainActivity : ComponentActivity() {
                 initializing.set(false)
             }
         }.start()
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!", modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PTPortalTheme {
-        Greeting("Android")
     }
 }

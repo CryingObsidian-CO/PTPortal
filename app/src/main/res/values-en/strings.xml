@@ -1,0 +1,33 @@
+<resources>
+  <string name="app_name">PTPortal</string>
+
+  <!-- Navigation -->
+  <string name="nav_connection">Connect</string>
+  <string name="nav_remote">Remote</string>
+  <string name="nav_files">Files</string>
+  <string name="nav_settings">Settings</string>
+
+  <!-- Connection screen -->
+  <string name="connection_status_disconnected">Not connected</string>
+  <string name="connection_status_connecting">Connecting…</string>
+  <string name="connection_status_usb_connected">USB connected</string>
+  <string name="connection_status_wifi_connected">Wi-Fi connected</string>
+  <string name="connection_status_error">Connection error</string>
+  <string name="connection_action_scan">Scan devices</string>
+  <string name="connection_action_disconnect">Disconnect</string>
+  <string name="connection_hint_no_device">No camera detected</string>
+  <string name="connection_hint_insert_usb">Connect your camera via USB cable, or turn on camera Wi-Fi for wireless pairing</string>
+
+  <!-- Remote screen -->
+  <string name="remote_title">Remote</string>
+  <string name="remote_shutter">Shutter</string>
+  <string name="remote_record">Record</string>
+  <string name="remote_not_connected">Please connect a camera first</string>
+
+  <!-- Files screen -->
+  <string name="files_title">Files</string>
+  <string name="files_empty">No content</string>
+
+  <!-- Settings screen -->
+  <string name="settings_title">Settings</string>
+</resources>

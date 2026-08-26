@@ -1,3 +1,33 @@
 <resources>
   <string name="app_name">PTPortal</string>
+
+  <!-- Navigation -->
+  <string name="nav_connection">连接</string>
+  <string name="nav_remote">遥控</string>
+  <string name="nav_files">文件</string>
+  <string name="nav_settings">设置</string>
+
+  <!-- Connection screen -->
+  <string name="connection_status_disconnected">未连接</string>
+  <string name="connection_status_connecting">连接中…</string>
+  <string name="connection_status_usb_connected">USB 已连接</string>
+  <string name="connection_status_wifi_connected">Wi-Fi 已连接</string>
+  <string name="connection_status_error">连接错误</string>
+  <string name="connection_action_scan">扫描设备</string>
+  <string name="connection_action_disconnect">断开连接</string>
+  <string name="connection_hint_no_device">未检测到相机设备</string>
+  <string name="connection_hint_insert_usb">请通过 USB 线连接相机，或开启相机 Wi-Fi 进行无线配对</string>
+
+  <!-- Remote screen -->
+  <string name="remote_title">遥控</string>
+  <string name="remote_shutter">快门</string>
+  <string name="remote_record">录制</string>
+  <string name="remote_not_connected">请先连接相机</string>
+
+  <!-- Files screen -->
+  <string name="files_title">文件</string>
+  <string name="files_empty">暂无内容</string>
+
+  <!-- Settings screen -->
+  <string name="settings_title">设置</string>
 </resources>
