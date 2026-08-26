@@ -17,6 +17,26 @@
   <string name="connection_action_disconnect">Disconnect</string>
   <string name="connection_hint_no_device">No camera detected</string>
   <string name="connection_hint_insert_usb">Connect your camera via USB cable, or turn on camera Wi-Fi for wireless pairing</string>
+  <string name="connection_action_connect_usb">USB connect</string>
+  <string name="connection_action_wireless">Wireless pairing</string>
+  <string name="connection_paired_devices">Paired devices</string>
+  <string name="connection_no_paired_devices">No paired devices</string>
+
+  <!-- Wireless scan -->
+  <string name="scan_title">Scan devices</string>
+  <string name="scan_scanning">Searching for nearby cameras…</string>
+  <string name="scan_results">%1$d devices found</string>
+  <string name="scan_empty">No devices found\nMake sure camera Wi-Fi is turned on</string>
+  <string name="scan_action_back">Back</string>
+
+  <!-- Pairing -->
+  <string name="pairing_title">Pair with %1$s</string>
+  <string name="pairing_hint_pin">Enter the PIN code displayed on your camera screen</string>
+  <string name="pairing_pin_label">PIN code</string>
+  <string name="pairing_action_confirm">Confirm pairing</string>
+  <string name="pairing_step_device">Select device</string>
+  <string name="pairing_step_pin">Enter PIN</string>
+  <string name="pairing_step_auth">Authorize</string>
 
   <!-- Remote screen -->
   <string name="remote_title">Remote</string>

@@ -17,6 +17,26 @@
   <string name="connection_action_disconnect">断开连接</string>
   <string name="connection_hint_no_device">未检测到相机设备</string>
   <string name="connection_hint_insert_usb">请通过 USB 线连接相机，或开启相机 Wi-Fi 进行无线配对</string>
+  <string name="connection_action_connect_usb">USB 连接</string>
+  <string name="connection_action_wireless">无线配对</string>
+  <string name="connection_paired_devices">已配对设备</string>
+  <string name="connection_no_paired_devices">暂无已配对设备</string>
+
+  <!-- Wireless scan -->
+  <string name="scan_title">扫描设备</string>
+  <string name="scan_scanning">正在搜索附近的相机…</string>
+  <string name="scan_results">发现 %1$d 台设备</string>
+  <string name="scan_empty">未找到设备\n请确认相机 Wi-Fi 已开启</string>
+  <string name="scan_action_back">返回</string>
+
+  <!-- Pairing -->
+  <string name="pairing_title">%1$s 配对</string>
+  <string name="pairing_hint_pin">请在相机屏幕上确认显示的 PIN 码并输入到下方</string>
+  <string name="pairing_pin_label">PIN 码</string>
+  <string name="pairing_action_confirm">确认配对</string>
+  <string name="pairing_step_device">选择设备</string>
+  <string name="pairing_step_pin">输入 PIN</string>
+  <string name="pairing_step_auth">授权</string>
 
   <!-- Remote screen -->
   <string name="remote_title">遥控</string>
