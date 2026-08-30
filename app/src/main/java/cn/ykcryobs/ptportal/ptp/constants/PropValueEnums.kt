@@ -695,3 +695,37 @@ enum class StillCaptureMode(override val code: Long, override val label: String)
 enum class IrisMode(override val code: Long, override val label: String) : EnumEntry {
     AUTOMATIC(0x01, "im_automatic"), MANUAL(0x02, "im_manual")
 }
+
+/**
+ * 电池电量指示器枚举
+ * 对应属性码 0xD20E (Battery Level Indicator)
+ *
+ */
+enum class BatteryLevel(override val code: Long, override val label: String) : EnumEntry {
+    FAKE_BATTERY(0x01, "im_fake_battery"),
+    UNUSABLE(0x02, "im_unusable"),
+    PRE_END_BATTERY(0x03, "im_pre_end_battery"),
+    BATTERY_LEVEL_1_4(0x04, "im_battery_level_1_4"),
+    BATTERY_LEVEL_2_4(0x05, "im_battery_level_2_4"),
+    BATTERY_LEVEL_3_4(0x06, "im_battery_level_3_4"),
+    BATTERY_LEVEL_4_4(0x07, "im_battery_level_4_4"),
+    BATTERY_LEVEL_1_3(0x08, "im_battery_level_1_3"),
+    BATTERY_LEVEL_2_3(0x09, "im_battery_level_2_3"),
+    BATTERY_LEVEL_3_3(0x0A, "im_battery_level_3_3"),
+    PRE_END_BATTERY_USB_SUPPLY(0x0B, "im_pre_end_battery_usb_supply"),
+    BATTERY_LEVEL_1_4_USB_SUPPLY(0x0C, "im_battery_level_1_4_usb_supply"),
+    BATTERY_LEVEL_2_4_USB_SUPPLY(0x0D, "im_battery_level_2_4_usb_supply"),
+    BATTERY_LEVEL_3_4_USB_SUPPLY(0x0E, "im_battery_level_3_4_usb_supply"),
+    BATTERY_LEVEL_4_4_USB_SUPPLY(0x0F, "im_battery_level_4_4_usb_supply"),
+    USB_BUS_POWER_SUPPLY(0x10, "im_usb_bus_power_supply"),
+    BATTERY_NOT_INSTALLED(0xFF, "im_battery_not_installed");
+}
+
+/**
+ * 电池电量枚举
+ * 对应属性码 0xD218 (Battery Remaining)
+ *
+ */
+enum class BatteryRemaining(override val code: Long, override val label: String) : EnumEntry {
+    UNTAKEN(0xFF, "untaken")
+}

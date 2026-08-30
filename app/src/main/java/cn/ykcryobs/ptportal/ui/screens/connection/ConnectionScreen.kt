@@ -38,23 +38,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cn.ykcryobs.ptportal.R
+import cn.ykcryobs.ptportal.domain.connection.CameraConnectionRepository
 import cn.ykcryobs.ptportal.domain.connection.DiscoveredDevice
 import cn.ykcryobs.ptportal.domain.connection.ConnectionState
 import cn.ykcryobs.ptportal.domain.connection.PairedDevice
-import cn.ykcryobs.ptportal.mock.MockCameraConnectionRepository
 import cn.ykcryobs.ptportal.ui.components.PTCard
 import cn.ykcryobs.ptportal.ui.components.SectionHeader
 
 private enum class ConnectionSubView {
-    Main,
-    Scan,
-    Pairing,
+    Main, Scan, Pairing,
 }
 
 @Composable
-fun ConnectionScreen(modifier: Modifier = Modifier) {
-    val repository = remember { MockCameraConnectionRepository() }
-    val viewModel: ConnectionViewModel = viewModel(factory = simpleFactory { ConnectionViewModel(repository) })
+fun ConnectionScreen(
+    repository: CameraConnectionRepository,
+    modifier: Modifier = Modifier,
+) {
+    val viewModel: ConnectionViewModel =
+        viewModel(factory = simpleFactory { ConnectionViewModel(repository) })
 
     var subView by remember { mutableStateOf(ConnectionSubView.Main) }
     val connectionState by viewModel.connectionState.collectAsState()
@@ -69,10 +70,12 @@ fun ConnectionScreen(modifier: Modifier = Modifier) {
                 viewModel.stopScan()
                 subView = ConnectionSubView.Main
             }
+
             ConnectionSubView.Pairing -> {
                 viewModel.clearSelectedDevice()
                 subView = ConnectionSubView.Scan
             }
+
             else -> {}
         }
     }
@@ -94,6 +97,7 @@ fun ConnectionScreen(modifier: Modifier = Modifier) {
                 onDisconnect = { viewModel.disconnect() },
                 onRemovePaired = { viewModel.removePaired(it) },
             )
+
             ConnectionSubView.Scan -> ScanView(
                 isScanning = isScanning,
                 devices = discovered,
@@ -107,6 +111,7 @@ fun ConnectionScreen(modifier: Modifier = Modifier) {
                 },
                 onRetry = { viewModel.startScan() },
             )
+
             ConnectionSubView.Pairing -> PairingView(
                 deviceName = selectedDevice?.name ?: "",
                 onBack = {
@@ -204,7 +209,9 @@ private fun ScanView(
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.scan_action_back))
             }
-            Text(stringResource(R.string.scan_title), style = MaterialTheme.typography.headlineSmall)
+            Text(
+                stringResource(R.string.scan_title), style = MaterialTheme.typography.headlineSmall
+            )
         }
         when {
             isScanning -> Column(
@@ -214,17 +221,26 @@ private fun ScanView(
             ) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.height(16.dp))
-                Text(stringResource(R.string.scan_scanning), color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    stringResource(R.string.scan_scanning),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
+
             devices.isEmpty() -> Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text(stringResource(R.string.scan_empty), textAlign = androidx.compose.ui.text.style.TextAlign.Companion.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    stringResource(R.string.scan_empty),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Companion.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 Spacer(Modifier.height(16.dp))
                 OutlinedButton(onClick = onRetry) { Text(stringResource(R.string.connection_action_scan)) }
             }
+
             else -> {
                 Text(
                     text = stringResource(R.string.scan_results, devices.size),
@@ -234,7 +250,9 @@ private fun ScanView(
                 )
                 LazyColumn(contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 16.dp)) {
                     items(devices, key = { it.id }) { device ->
-                        PTCard(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp), onClick = { onDeviceSelect(device) }) {
+                        PTCard(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            onClick = { onDeviceSelect(device) }) {
                             DeviceListItem(device = device, onClick = { onDeviceSelect(device) })
                         }
                     }
@@ -252,12 +270,19 @@ private fun PairingView(
 ) {
     var pin by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf("") }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.scan_action_back))
             }
-            Text(stringResource(R.string.pairing_title, deviceName), style = MaterialTheme.typography.headlineSmall)
+            Text(
+                stringResource(R.string.pairing_title, deviceName),
+                style = MaterialTheme.typography.headlineSmall
+            )
         }
         Spacer(Modifier.height(16.dp))
         PairingContent(
@@ -280,5 +305,6 @@ private fun PairingView(
 private fun <T> simpleFactory(create: () -> T): androidx.lifecycle.ViewModelProvider.Factory =
     object : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <VM : androidx.lifecycle.ViewModel> create(modelClass: Class<VM>): VM = create() as VM
+        override fun <VM : androidx.lifecycle.ViewModel> create(modelClass: Class<VM>): VM =
+            create() as VM
     }

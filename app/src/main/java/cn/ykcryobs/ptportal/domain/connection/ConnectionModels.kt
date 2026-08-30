@@ -1,10 +1,10 @@
 package cn.ykcryobs.ptportal.domain.connection
 
 import kotlinx.coroutines.flow.StateFlow
+import cn.ykcryobs.ptportal.ptp.constants.BatteryLevel
 
 enum class TransportType {
-    USB,
-    WiFi,
+    USB, WiFi,
 }
 
 sealed interface ConnectionState {
@@ -25,7 +25,10 @@ data class CameraDeviceInfo(
     val batteryPercent: Int,
     val storageFreeGb: Double,
     val storageTotalGb: Double,
-)
+    val batteryLevel: BatteryLevel? = null,
+) {
+    val batteryLevelLabel: String get() = batteryLevel?.label ?: "-"
+}
 
 data class DiscoveredDevice(
     val id: String,
@@ -49,7 +52,10 @@ interface CameraConnectionRepository {
     fun scanForDevices(onComplete: (List<DiscoveredDevice>) -> Unit, onError: (String) -> Unit)
     fun stopScanning()
     fun connectViaUsb(onSuccess: () -> Unit, onError: (String) -> Unit)
-    fun connectViaWifi(device: DiscoveredDevice, pin: String, onSuccess: () -> Unit, onError: (String) -> Unit)
+    fun connectViaWifi(
+        device: DiscoveredDevice, pin: String, onSuccess: () -> Unit, onError: (String) -> Unit
+    )
+
     fun disconnect()
     fun removePairedDevice(deviceId: String)
 }

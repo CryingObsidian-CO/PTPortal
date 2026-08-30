@@ -31,7 +31,23 @@ sealed interface ValueLabeler {
 
         override fun label(value: Long): String = codeToLabel[value] ?: "0x%X".format(value)
         fun codeOf(label: String): Long? = labelToCode[label]
+        fun labelOrNull(value: Long): String? = codeToLabel[value]
         val entries: List<E> = enumClass.java.enumConstants!!.toList()
+    }
+
+    /**
+     * 枚举标注器 + 原始数字共存：在枚举名之外同时保留原始值，
+     * 例如 0x04 → "im_battery_level_1_4 (0x04)"。
+     * 当值不在枚举内时回落为纯原始 hex，避免出现 "0xXX (0xXX)" 的冗余。
+     */
+    class EnumWithRaw<E : EnumEntry>(enumClass: KClass<E>) : ValueLabeler {
+        private val inner = Enum(enumClass)
+        override fun label(value: Long): String {
+            val matched = inner.labelOrNull(value)
+            return if (matched != null) "$matched (0x%X)".format(value) else "0x%X".format(value)
+        }
+
+        val entries: List<E> = inner.entries
     }
 
     /** 任意规则，lambda 兜底 */
@@ -77,7 +93,12 @@ enum class SdioPropCode(
     EXPOSURE_BIAS(0x5010, "Exposure Bias", ValueLabeler.Scaled(1000, 1, "EV")),
     STILL_CAPTURE_MODE(0x5013, "Still Capture Mode", ValueLabeler.Enum(StillCaptureMode::class)),
     IRIS_MODE(0xD001, "Iris Mode", ValueLabeler.Enum(IrisMode::class)),
-    FOCAL_DISTANCE(0xD004, "Focal Distance in Meter", ValueLabeler.Raw);
+    FOCAL_DISTANCE(0xD004, "Focal Distance in Meter", ValueLabeler.Raw),
+    BATTERY_LEVEL(0xD20E, "Battery Level Indicator", ValueLabeler.Enum(BatteryLevel::class)),
+    BATTERY_REMAINING(
+        0xD218, "Battery Remaining", ValueLabeler.EnumWithRaw(BatteryRemaining::class)
+    ),
+    CONTENT_TRANSFER_ENABLE(0xD295, "Content Transfer Enable"); // 0x01=开启内容传输模式
     // TODO 等待补全
 
     override fun toString(): String = "${description}(0x%04X)".format(code)

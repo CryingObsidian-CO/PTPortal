@@ -15,7 +15,8 @@ enum class PtpResponseCode(override val code: Int) : PtpRespCode {
     PARAMETER_NOT_SUPPORTED(0x2006), // 参数不支持
     ACCESS_DENIED(0x200F),     // 无权限/被拒绝
     DEVICE_BUSY(0x2019),       // 设备正忙
-    SESSION_ALREADY_OPEN(0x201E); // session 已打开
+    SESSION_ALREADY_OPEN(0x201E), // session 已打开
+    STORE_NOT_AVAILABLE(0x2013);  // 存储不可用
 
     companion object {
         fun fromCode(code: Int): PtpRespCode =

@@ -6,6 +6,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import cn.ykcryobs.ptportal.domain.preferences.UserPreferencesRepository
+import cn.ykcryobs.ptportal.domain.connection.CameraConnectionRepository
 import cn.ykcryobs.ptportal.ui.screens.connection.ConnectionScreen
 import cn.ykcryobs.ptportal.ui.screens.files.FilesScreen
 import cn.ykcryobs.ptportal.ui.screens.remote.RemoteScreen
@@ -15,6 +16,7 @@ import cn.ykcryobs.ptportal.ui.screens.settings.SettingsScreen
 fun PTNavHost(
     navController: NavHostController,
     userPreferencesRepository: UserPreferencesRepository,
+    connectionRepository: CameraConnectionRepository,
     modifier: Modifier = Modifier,
 ) {
     NavHost(
@@ -23,7 +25,7 @@ fun PTNavHost(
         modifier = modifier,
     ) {
         composable(PTDestinations.Connection.route) {
-            ConnectionScreen()
+            ConnectionScreen(repository = connectionRepository)
         }
         composable(PTDestinations.Remote.route) {
             RemoteScreen()

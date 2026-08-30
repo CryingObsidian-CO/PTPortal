@@ -16,4 +16,7 @@ object PtpConstants {
     const val USB_TRANSFER_BUFFER = 16 * 1024     // 16KB
     const val LIVEVIEW_BUFFER = 256 * 1024        // 256KB
 
+    const val EVENT_BUFFER_SIZE = 64
+    const val EVENT_TIMEOUT = 500
+
 }

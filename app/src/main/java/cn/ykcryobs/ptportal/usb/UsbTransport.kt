@@ -27,6 +27,10 @@ class UsbTransport {
     var bulkInEndpoint: UsbEndpoint? = null
         private set
 
+    @Volatile
+    var interruptInEndpoint: UsbEndpoint? = null
+        private set
+
     private var ptpInterface: UsbInterface? = null
 
     fun openDevice(device: UsbDevice): Boolean = lock.withLock {
@@ -57,12 +61,14 @@ class UsbTransport {
                         } else {
                             bulkInEndpoint = ep
                         }
+                    } else if (ep.type == UsbConstants.USB_ENDPOINT_XFER_INT && ep.direction == UsbConstants.USB_DIR_IN) {
+                        interruptInEndpoint = ep
                     }
                 }
             }
         }
 
-        if (bulkInEndpoint == null || bulkOutEndpoint == null) {
+        if (bulkInEndpoint == null || bulkOutEndpoint == null || interruptInEndpoint == null) {
             Log.e(PtpConstants.LOG_TAG, "找不到PTP Bulk端点")
             close()
             return false
@@ -90,15 +96,21 @@ class UsbTransport {
         connection = null
         bulkInEndpoint = null
         bulkOutEndpoint = null
+        interruptInEndpoint = null
         ptpInterface = null
     }
 
     fun bulkTransferOut(data: ByteArray, length: Int): Int = lock.withLock {
-        connection?.bulkTransfer(bulkOutEndpoint, data, length, PtpConstants.USB_TIMEOUT)
-            ?: -1
+        connection?.bulkTransfer(bulkOutEndpoint, data, length, PtpConstants.USB_TIMEOUT) ?: -1
     }
 
-    fun bulkTransferIn(buffer: ByteArray, timeoutMs: Int = PtpConstants.USB_TIMEOUT): Int = lock.withLock {
-        connection?.bulkTransfer(bulkInEndpoint, buffer, buffer.size, timeoutMs) ?: -1
-    }
+    fun bulkTransferIn(buffer: ByteArray, timeoutMs: Int = PtpConstants.USB_TIMEOUT): Int =
+        lock.withLock {
+            connection?.bulkTransfer(bulkInEndpoint, buffer, buffer.size, timeoutMs) ?: -1
+        }
+
+    fun interruptTransferIn(buffer: ByteArray, timeoutMs: Int = PtpConstants.EVENT_TIMEOUT): Int =
+        lock.withLock {
+            connection?.bulkTransfer(interruptInEndpoint, buffer, buffer.size, timeoutMs) ?: -1
+        }
 }

@@ -7,7 +7,9 @@ import cn.ykcryobs.ptportal.ptp.constants.PtpStandardOpCode
 import cn.ykcryobs.ptportal.ptp.constants.SdioPropCode
 import cn.ykcryobs.ptportal.ptp.constants.DisplayStringListType
 import cn.ykcryobs.ptportal.ptp.model.ExtDeviceInfoResult
+import cn.ykcryobs.ptportal.ptp.model.DevicePropInfo
 import cn.ykcryobs.ptportal.ptp.model.IsEnabled
+import cn.ykcryobs.ptportal.ptp.model.PropValue
 import cn.ykcryobs.ptportal.ptp.model.SdioExtDevicePropInfo
 import cn.ykcryobs.ptportal.ptp.model.SdioDisplayStringList
 import cn.ykcryobs.ptportal.ptp.parser.SdioExtDevicePropInfoParser
@@ -52,7 +54,7 @@ class SdioManager(private val session: PtpSession) {
             return ExtDeviceInfoResult.DataTooShort
         }
         val sdioVer = buffer.short.toInt() and 0xFFFF
-        Log.d(PtpConstants.LOG_TAG, "SDIExtensionVersion = 0x%04X".format(sdioVer))
+        Log.d(PtpConstants.LOG_TAG, "SDIOExtensionVersion = 0x%04X".format(sdioVer))
 
         // NOTE 要求 版本为 0x12c（3.0.0）
         return if (sdioVer == 0x12c) {
@@ -117,6 +119,32 @@ class SdioManager(private val session: PtpSession) {
         return result
     }
 
+    fun getExtDevicePropInfo(propCode: Int): DevicePropInfo? {
+        val (resp, _, data) = session.sendCommandWithDataIn(
+            PtpStandardOpCode.SDIO_GET_EXT_DEVICE_PROP, propCode
+        )
+        if (resp != PtpResponseCode.OK) {
+            Log.e(
+                PtpConstants.LOG_TAG,
+                "SDIO_GetExtDeviceProp 失败, propCode=0x${propCode.toString(16)}, resp=$resp"
+            )
+            return null
+        }
+        val prop = SdioExtDevicePropInfoParser.parseSingle(data)
+        if (prop == null) {
+            Log.e(
+                PtpConstants.LOG_TAG,
+                "SDIO_GetExtDeviceProp 解析失败, propCode=0x${propCode.toString(16)}"
+            )
+        } else {
+            Log.d(
+                PtpConstants.LOG_TAG,
+                "SDIO_GetExtDeviceProp 成功: propCode=0x${propCode.toString(16)}, current=${prop.currentValue}"
+            )
+        }
+        return prop
+    }
+
     fun getDisplayStringList(type: DisplayStringListType): SdioDisplayStringList? {
         val (resp, _, data) = session.sendCommandWithDataIn(
             PtpStandardOpCode.SDIO_GET_DISPLAY_STRING_LIST, type.code
@@ -137,6 +165,33 @@ class SdioManager(private val session: PtpSession) {
             "SDIO_GetDisplayStringList 成功: type=$type, strings=${stringList.displayStringList.size}"
         )
         return stringList
+    }
+
+    fun setContentsTransferMode(
+        contentsSelectType: Int = 0x01, // Select on the Camera
+        transferMode: Int = 0x01,       // On
+        additionalInfo: Int = 0x00,     // None
+    ): Boolean {
+        val (resp) = session.sendCommand(
+            PtpStandardOpCode.SDIO_SET_CONTENTS_TRANSFER_MODE,
+            contentsSelectType,
+            transferMode,
+            additionalInfo
+        )
+        return if (resp == PtpResponseCode.OK) {
+            Log.i(
+                PtpConstants.LOG_TAG,
+                "SDIO_SetContentsTransferMode 成功: selectType=0x%X, mode=0x%X".format(
+                    contentsSelectType, transferMode
+                )
+            )
+            true
+        } else {
+            Log.e(
+                PtpConstants.LOG_TAG, "SDIO_SetContentsTransferMode 失败: resp=$resp"
+            )
+            false
+        }
     }
 
     fun performFullHandshake(): Boolean {

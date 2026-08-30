@@ -1,6 +1,7 @@
 package cn.ykcryobs.ptportal.ui.navigation
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
@@ -15,25 +16,31 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import cn.ykcryobs.ptportal.domain.preferences.UserPreferencesRepository
+import cn.ykcryobs.ptportal.domain.connection.CameraConnectionRepository
 
 private val BottomNavMaxWidth = 600
 private val RailNavMaxWidth = 840
 
 @Composable
-fun PTScaffold(userPreferencesRepository: UserPreferencesRepository) {
+fun PTScaffold(
+    userPreferencesRepository: UserPreferencesRepository,
+    connectionRepository: CameraConnectionRepository,
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = backStackEntry?.destination
 
     val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp
-    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val screenWidthDp = LocalWindowInfo.current.containerSize.width
+    val isLandscape =
+        configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
     val useBottomBar = screenWidthDp < BottomNavMaxWidth || !isLandscape
     val useRail = !useBottomBar && screenWidthDp < RailNavMaxWidth
@@ -74,11 +81,18 @@ fun PTScaffold(userPreferencesRepository: UserPreferencesRepository) {
             PTNavHost(
                 navController = navController,
                 userPreferencesRepository = userPreferencesRepository,
-                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                connectionRepository = connectionRepository,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
             )
         }
     } else {
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+        ) {
             NavigationRail(
                 containerColor = MaterialTheme.colorScheme.surfaceContainer,
             ) {
@@ -112,7 +126,10 @@ fun PTScaffold(userPreferencesRepository: UserPreferencesRepository) {
             PTNavHost(
                 navController = navController,
                 userPreferencesRepository = userPreferencesRepository,
-                modifier = Modifier.fillMaxSize().weight(1f),
+                connectionRepository = connectionRepository,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
             )
         }
     }

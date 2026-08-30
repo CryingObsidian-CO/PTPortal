@@ -10,6 +10,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 class ConnectionViewModel(
     private val repository: CameraConnectionRepository,
@@ -34,7 +35,7 @@ class ConnectionViewModel(
         _isScanning.value = true
         _discoveredDevices.value = emptyList()
         scanJob = viewModelScope.launch {
-            delay(500)
+            delay(500.milliseconds)
             repository.scanForDevices(
                 onComplete = { devices ->
                     _discoveredDevices.value = devices

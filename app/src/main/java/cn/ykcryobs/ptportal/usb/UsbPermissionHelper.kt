@@ -13,8 +13,7 @@ import cn.ykcryobs.ptportal.AppContextHolder
 import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
 
 class UsbPermissionHelper(
-    private val context: Context,
-    private val onPermissionGranted: (UsbDevice) -> Unit
+    private val context: Context, private val onPermissionGranted: (UsbDevice) -> Unit
 ) {
 
     companion object {

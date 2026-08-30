@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- 索尼 VID=0x054c -->
-  <usb-device vendor-id="0x054c" />
+  <!-- 索尼 VID=0x054c，且具备 PTP 接口（class 6 / subclass 1），与 UsbDeviceDetector.isTargetCamera 一致 -->
+  <usb-device vendor-id="0x054c" class="6" subclass="1" />
 </resources>

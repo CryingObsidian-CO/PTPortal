@@ -37,12 +37,26 @@ object SdioExtDevicePropInfoParser {
 
             Log.d(
                 PtpConstants.LOG_TAG,
-                "SdiExtDevicePropInfo 解析完成: numOfElements=$numOfElements, parsed=${properties.size}"
+                "SdioExtDevicePropInfo 解析完成: numOfElements=$numOfElements, parsed=${properties.size}"
             )
             return SdioExtDevicePropInfo(numOfElements, properties)
         } catch (e: Exception) {
-            Log.e(PtpConstants.LOG_TAG, "SdiExtDevicePropInfo 解析异常: ${e.message}", e)
+            Log.e(PtpConstants.LOG_TAG, "SdioExtDevicePropInfo 解析异常: ${e.message}", e)
             return null
+        }
+    }
+
+    fun parseSingle(data: ByteArray): DevicePropInfo? {
+        if (data.size < 7) {
+            Log.e(PtpConstants.LOG_TAG, "SdioExtDevicePropInfo 单属性数据过短: ${data.size} bytes")
+            return null
+        }
+        return try {
+            val buffer = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN)
+            parseOne(buffer)
+        } catch (e: Exception) {
+            Log.e(PtpConstants.LOG_TAG, "SdioExtDevicePropInfo 单属性解析异常: ${e.message}", e)
+            null
         }
     }
 

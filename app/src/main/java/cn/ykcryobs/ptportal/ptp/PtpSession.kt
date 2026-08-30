@@ -5,9 +5,15 @@ import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
 import cn.ykcryobs.ptportal.ptp.constants.PtpContainerType
 import cn.ykcryobs.ptportal.ptp.constants.PtpResponseCode
 import cn.ykcryobs.ptportal.ptp.constants.PtpStandardOpCode
+import cn.ykcryobs.ptportal.ptp.constants.PtpEventCode
+import cn.ykcryobs.ptportal.ptp.constants.SdioPropCode
+import cn.ykcryobs.ptportal.ptp.model.IsEnabled
 import cn.ykcryobs.ptportal.ptp.model.PtpDataResponse
 import cn.ykcryobs.ptportal.ptp.model.PtpResponse
-import cn.ykcryobs.ptportal.ptp.parser.DeviceInfoParser
+import cn.ykcryobs.ptportal.ptp.model.PtpEvent
+import cn.ykcryobs.ptportal.ptp.model.ParsedStorageInfo
+import cn.ykcryobs.ptportal.ptp.parser.SdioExtDevicePropInfoParser
+import cn.ykcryobs.ptportal.ptp.parser.StorageInfoParser
 import cn.ykcryobs.ptportal.usb.UsbTransport
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
@@ -20,11 +26,13 @@ class PtpSession(val transport: UsbTransport) {
     private val transactionId = AtomicInteger(1)
 
     fun openSession(): Boolean {
-        var resp = sendCommand(PtpStandardOpCode.OPEN_SESSION, 0x01)
+        var resp = sendCommandWithDataIn(PtpStandardOpCode.SDIO_OPEN_SESSION, 0x01, 0x02)
+//        var resp = sendCommand(PtpStandardOpCode.OPEN_SESSION, 0x01)
         if (resp.respCode == PtpResponseCode.SESSION_ALREADY_OPEN) {
             Log.w(PtpConstants.LOG_TAG, "检测到旧 session 未关闭，先关闭再重试")
             closeSession()
-            resp = sendCommand(PtpStandardOpCode.OPEN_SESSION, 0x01)
+            resp = sendCommandWithDataIn(PtpStandardOpCode.SDIO_OPEN_SESSION, 0x01, 0x02)
+//            resp = sendCommand(PtpStandardOpCode.OPEN_SESSION, 0x01)
         }
         return if (resp.respCode == PtpResponseCode.OK) {
             Log.i(PtpConstants.LOG_TAG, "PTP 会话打开成功")
@@ -181,7 +189,81 @@ class PtpSession(val transport: UsbTransport) {
             Log.e(PtpConstants.LOG_TAG, "GetDeviceInfo 失败")
             return null
         }
-        DeviceInfoParser.parse(data)
         return data
     }
+
+    fun getStorageIds(): List<Int>? {
+        val (resp, _, data) = sendCommandWithDataIn(PtpStandardOpCode.GET_STORAGE_IDS)
+        if (resp != PtpResponseCode.OK) {
+            Log.e(PtpConstants.LOG_TAG, "GetStorageIDs 失败: $resp")
+        }
+        Log.d(PtpConstants.LOG_TAG, data.contentToString())
+        return StorageInfoParser.parseStorageIds(data)
+    }
+
+    fun getStorageInfo(storageId: Int): ParsedStorageInfo? {
+        val (resp, _, data) = sendCommandWithDataIn(PtpStandardOpCode.GET_STORAGE_INFO, storageId)
+        if (resp != PtpResponseCode.OK) {
+            Log.e(
+                PtpConstants.LOG_TAG,
+                "GetStorageInfo 失败: storageId=0x${storageId.toString(16)}, $resp"
+            )
+            return null
+        }
+        return StorageInfoParser.parse(data)
+    }
+
+
+    fun readEvent(timeoutMs: Int = PtpConstants.EVENT_TIMEOUT): PtpEvent? {
+        val buffer = ByteArray(PtpConstants.EVENT_BUFFER_SIZE)
+        val ret = transport.interruptTransferIn(buffer, timeoutMs)
+        if (ret < PtpConstants.HEADER_SIZE) {
+            return null
+        }
+        val buf = ByteBuffer.wrap(buffer, 0, ret).order(ByteOrder.LITTLE_ENDIAN)
+        val length = buf.getInt()
+        val type = buf.getShort().toInt() and 0xFFFF
+        val eventCode = buf.getShort().toInt() and 0xFFFF
+        val transactionId = buf.getInt()
+        val paramCount = (ret - PtpConstants.HEADER_SIZE) / 4
+        val params = List(paramCount) { buf.getInt() }
+
+        if (type != PtpContainerType.EVENT.code) {
+            Log.w(PtpConstants.LOG_TAG, "中断端点收到非事件包，type=$type")
+            return null
+        }
+        return PtpEvent(eventCode, transactionId, params)
+    }
+
+    fun waitForStoreAdded(timeoutMs: Int = 500000): Boolean {
+        if (transport.interruptInEndpoint == null) {
+            Log.w(PtpConstants.LOG_TAG, "没有中断端点，无法监听 StoreAdded 事件")
+            return false
+        }
+        val deadline = System.currentTimeMillis() + timeoutMs
+        while (System.currentTimeMillis() < deadline) {
+            val event = readEvent() ?: continue
+            Log.d(
+                PtpConstants.LOG_TAG,
+                "收到 PTP 事件: code=0x%04X, params=%s".format(event.eventCode, event.params)
+            )
+            when (event.eventCode) {
+                PtpEventCode.STORE_ADDED -> {
+                    Log.i(
+                        PtpConstants.LOG_TAG, "收到 StoreAdded 事件，StorageID=0x%08X".format(
+                            event.params.firstOrNull() ?: 0
+                        )
+                    )
+                    return true
+                }
+
+                else -> Log.d(
+                    PtpConstants.LOG_TAG, "收到未处理事件: 0x%04X".format(event.eventCode)
+                )
+            }
+        }
+        Log.w(PtpConstants.LOG_TAG, "等待 StoreAdded 事件超时（${timeoutMs}ms）")
+        return false
+    }
+
 }
