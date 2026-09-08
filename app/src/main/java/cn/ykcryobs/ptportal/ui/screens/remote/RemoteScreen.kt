@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.GridOn
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -41,29 +42,90 @@ import cn.ykcryobs.ptportal.mock.MockCameraControlRepository
 @Composable
 fun RemoteScreen(modifier: Modifier = Modifier) {
     val repository = remember { MockCameraControlRepository() }
-    val viewModel: RemoteViewModel = viewModel(factory = simpleFactory { RemoteViewModel(repository) })
+    val viewModel: RemoteViewModel =
+        viewModel(factory = simpleFactory { RemoteViewModel(repository) })
 
     val settings by viewModel.settings.collectAsState()
     val recording by viewModel.recordingState.collectAsState()
+
+
     var showGrid by remember { mutableStateOf(true) }
 
     val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    val isLandscape =
+        configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
-    if (isLandscape) {
-        Row(modifier = modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier.weight(0.65f).fillMaxHeight(),
-            ) {
-                LiveViewPlaceholder(showGrid = showGrid, modifier = Modifier.fillMaxSize())
-                LiveViewControls(showGrid = showGrid, onToggleGrid = { showGrid = !showGrid }, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
+    Box(modifier = modifier.fillMaxSize()) {
+        if (isLandscape) {
+            Row(modifier = modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .weight(0.65f)
+                        .fillMaxHeight(),
+                ) {
+                    LiveViewPlaceholder(showGrid = showGrid, modifier = Modifier.fillMaxSize())
+                    LiveViewControls(
+                        showGrid = showGrid,
+                        onToggleGrid = { showGrid = !showGrid },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                    )
+                }
+                Column(
+                    modifier = Modifier
+                        .weight(0.35f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(Modifier.height(16.dp))
+                    ParameterPanel(
+                        settings = settings,
+                        onApertureChange = viewModel::setAperture,
+                        onShutterChange = viewModel::setShutterSpeed,
+                        onIsoChange = viewModel::setIso,
+                        onExposureCompensation = viewModel::setExposureCompensation,
+                        onWhiteBalanceChange = viewModel::setWhiteBalance,
+                        onShootingModeChange = viewModel::setShootingMode,
+                        onFocusModeChange = viewModel::setFocusMode,
+                    )
+                    Spacer(Modifier.height(16.dp))
+                    ShutterRow(
+                        recording = recording,
+                        onCapture = { viewModel.capture() },
+                        onRecordToggle = { viewModel.toggleRecording() })
+                    Spacer(Modifier.height(24.dp))
+                }
             }
+        } else {
             Column(
-                modifier = Modifier.weight(0.35f).fillMaxHeight().verticalScroll(rememberScrollState()),
-                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(4f / 3f)
+                ) {
+                    LiveViewPlaceholder(showGrid = showGrid, modifier = Modifier.fillMaxSize())
+                    LiveViewControls(
+                        showGrid = showGrid,
+                        onToggleGrid = { showGrid = !showGrid },
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(8.dp)
+                    )
+                }
                 Spacer(Modifier.height(16.dp))
-                ParameterPanel(settings = settings,
+                ShutterRow(
+                    recording = recording,
+                    onCapture = { viewModel.capture() },
+                    onRecordToggle = { viewModel.toggleRecording() })
+                Spacer(Modifier.height(12.dp))
+                ParameterPanel(
+                    settings = settings,
                     onApertureChange = viewModel::setAperture,
                     onShutterChange = viewModel::setShutterSpeed,
                     onIsoChange = viewModel::setIso,
@@ -72,30 +134,8 @@ fun RemoteScreen(modifier: Modifier = Modifier) {
                     onShootingModeChange = viewModel::setShootingMode,
                     onFocusModeChange = viewModel::setFocusMode,
                 )
-                Spacer(Modifier.height(16.dp))
-                ShutterRow(recording = recording, onCapture = { viewModel.capture() }, onRecordToggle = { viewModel.toggleRecording() })
                 Spacer(Modifier.height(24.dp))
             }
-        }
-    } else {
-        Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            Box(modifier = Modifier.fillMaxWidth().aspectRatio(4f / 3f)) {
-                LiveViewPlaceholder(showGrid = showGrid, modifier = Modifier.fillMaxSize())
-                LiveViewControls(showGrid = showGrid, onToggleGrid = { showGrid = !showGrid }, modifier = Modifier.align(Alignment.TopEnd).padding(8.dp))
-            }
-            Spacer(Modifier.height(16.dp))
-            ShutterRow(recording = recording, onCapture = { viewModel.capture() }, onRecordToggle = { viewModel.toggleRecording() })
-            Spacer(Modifier.height(12.dp))
-            ParameterPanel(settings = settings,
-                onApertureChange = viewModel::setAperture,
-                onShutterChange = viewModel::setShutterSpeed,
-                onIsoChange = viewModel::setIso,
-                onExposureCompensation = viewModel::setExposureCompensation,
-                onWhiteBalanceChange = viewModel::setWhiteBalance,
-                onShootingModeChange = viewModel::setShootingMode,
-                onFocusModeChange = viewModel::setFocusMode,
-            )
-            Spacer(Modifier.height(24.dp))
         }
     }
 }
@@ -106,12 +146,16 @@ private fun LiveViewControls(
     onToggleGrid: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    IconButton(onClick = onToggleGrid, modifier = modifier) {
-        Icon(
-            imageVector = Icons.Filled.GridOn,
-            contentDescription = stringResource(R.string.remote_grid_toggle),
-            tint = if (showGrid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-        )
+    Row(modifier = modifier) {
+        IconButton(onClick = onToggleGrid, modifier = modifier) {
+            Icon(
+                imageVector = Icons.Filled.GridOn,
+                contentDescription = stringResource(R.string.remote_grid_toggle),
+                tint = if (showGrid) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                    alpha = 0.5f
+                ),
+            )
+        }
     }
 }
 
@@ -124,36 +168,57 @@ private fun ShutterRow(
     val isRecordingNow = recording is RecordingState.Recording
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Record button (left)
-        IconButton(onClick = onRecordToggle, modifier = Modifier.size(48.dp)) {
-            Icon(
-                imageVector = Icons.Filled.FiberManualRecord,
-                contentDescription = stringResource(R.string.remote_record),
-                tint = if (isRecordingNow) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(32.dp),
-            )
+        Text(
+            text = "22222",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.weight(1f)
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(2f)
+        ) {
+            IconButton(onClick = onRecordToggle, modifier = Modifier.size(44.dp)) {
+                Icon(
+                    imageVector = Icons.Filled.FiberManualRecord,
+                    contentDescription = stringResource(R.string.remote_record),
+                    tint = if (isRecordingNow) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = 0.5f
+                    ),
+                    modifier = Modifier.size(28.dp),
+                )
+            }
+            Spacer(Modifier.width(24.dp))
+
+            ShutterButton(onClick = onCapture, size = 60.dp)
+            Spacer(Modifier.width(24.dp))
         }
-
-        Spacer(Modifier.width(32.dp))
-
-        // Main shutter
-        ShutterButton(onClick = onCapture, size = 72.dp)
-
-        Spacer(Modifier.width(32.dp))
-
-        // Recording timer (right side placeholder for symmetry)
-        if (recording is RecordingState.Recording) {
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (recording is RecordingState.Recording) {
+                Text(
+                    text = formatDuration(recording.elapsedSeconds),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(end = 6.dp)
+                )
+            }
             Text(
-                text = formatDuration(recording.elapsedSeconds),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.error,
+                text = "22222",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-        } else {
-            Spacer(Modifier.width(48.dp))
         }
     }
 }
@@ -167,5 +232,6 @@ private fun formatDuration(totalSeconds: Int): String {
 private fun <T> simpleFactory(create: () -> T): androidx.lifecycle.ViewModelProvider.Factory =
     object : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <VM : androidx.lifecycle.ViewModel> create(modelClass: Class<VM>): VM = create() as VM
+        override fun <VM : androidx.lifecycle.ViewModel> create(modelClass: Class<VM>): VM =
+            create() as VM
     }

@@ -37,9 +37,14 @@ class RemoteViewModel(
     fun setShutterSpeed(value: String) = update(SettingKey.ShutterSpeed, value)
     fun setIso(value: Int) = update(SettingKey.Iso, value)
     fun setExposureCompensation(value: Float) = update(SettingKey.ExposureCompensation, value)
-    fun setWhiteBalance(value: cn.ykcryobs.ptportal.domain.remote.WhiteBalanceMode) = update(SettingKey.WhiteBalance, value)
-    fun setShootingMode(value: cn.ykcryobs.ptportal.domain.remote.ShootingMode) = update(SettingKey.ShootingMode, value)
-    fun setFocusMode(value: cn.ykcryobs.ptportal.domain.remote.FocusMode) = update(SettingKey.FocusMode, value)
+    fun setWhiteBalance(value: cn.ykcryobs.ptportal.domain.remote.WhiteBalanceMode) =
+        update(SettingKey.WhiteBalance, value)
+
+    fun setShootingMode(value: cn.ykcryobs.ptportal.domain.remote.ShootingMode) =
+        update(SettingKey.ShootingMode, value)
+
+    fun setFocusMode(value: cn.ykcryobs.ptportal.domain.remote.FocusMode) =
+        update(SettingKey.FocusMode, value)
 
     private fun update(key: SettingKey, value: Any) {
         viewModelScope.launch { repository.updateSetting(key, value) }

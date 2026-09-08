@@ -36,7 +36,11 @@ fun ParameterPanel(
     onFocusModeChange: (FocusMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+    ) {
         Text(
             text = stringResource(R.string.remote_params_title),
             style = MaterialTheme.typography.titleSmall,
@@ -76,7 +80,11 @@ fun ParameterPanel(
 
         // Exposure compensation slider
         Text(
-            text = "${stringResource(R.string.remote_param_exp_comp)} ${if (settings.exposureCompensation >= 0) "+" else ""}${"%.1f".format(settings.exposureCompensation)} EV",
+            text = "${stringResource(R.string.remote_param_exp_comp)} ${if (settings.exposureCompensation >= 0) "+" else ""}${
+                "%.1f".format(
+                    settings.exposureCompensation
+                )
+            } EV",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -89,10 +97,16 @@ fun ParameterPanel(
         Spacer(Modifier.height(8.dp))
 
         // Shooting mode selector
-        Text(stringResource(R.string.remote_param_mode), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            stringResource(R.string.remote_param_mode),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.horizontalScroll(rememberScrollState()).padding(top = 4.dp),
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(top = 4.dp),
         ) {
             ShootingMode.entries.forEach { mode ->
                 ParamChip(
@@ -106,10 +120,16 @@ fun ParameterPanel(
         Spacer(Modifier.height(8.dp))
 
         // White balance selector
-        Text(stringResource(R.string.remote_param_wb), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            stringResource(R.string.remote_param_wb),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Row(
             horizontalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier.horizontalScroll(rememberScrollState()).padding(top = 4.dp),
+            modifier = Modifier
+                .horizontalScroll(rememberScrollState())
+                .padding(top = 4.dp),
         ) {
             WhiteBalanceMode.entries.forEach { wb ->
                 ParamChip(
@@ -145,7 +165,14 @@ private fun <T> ChipRow(
     onSelect: (T) -> Unit,
 ) {
     Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(end = 8.dp).widthIn(min = 32.dp))
+        Text(
+            label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .padding(end = 8.dp)
+                .widthIn(min = 32.dp)
+        )
         Row(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.horizontalScroll(rememberScrollState()),
@@ -155,7 +182,7 @@ private fun <T> ChipRow(
                     label = format(option),
                     value = "",
                     isSelected = index == selectedIndex,
-                onClick = { onSelect(option) },
+                    onClick = { onSelect(option) },
                 )
             }
         }
