@@ -9,7 +9,6 @@ import cn.ykcryobs.ptportal.ptp.constants.DisplayStringListType
 import cn.ykcryobs.ptportal.ptp.model.ExtDeviceInfoResult
 import cn.ykcryobs.ptportal.ptp.model.DevicePropInfo
 import cn.ykcryobs.ptportal.ptp.model.IsEnabled
-import cn.ykcryobs.ptportal.ptp.model.PropValue
 import cn.ykcryobs.ptportal.ptp.model.SdioExtDevicePropInfo
 import cn.ykcryobs.ptportal.ptp.model.SdioDisplayStringList
 import cn.ykcryobs.ptportal.ptp.parser.SdioExtDevicePropInfoParser

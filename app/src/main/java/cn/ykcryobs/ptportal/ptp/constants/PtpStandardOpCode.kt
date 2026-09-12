@@ -13,6 +13,7 @@ enum class PtpStandardOpCode(val code: Int) {
     SDIO_GET_ALL_EXT_DEVICE_PROP_INFO(0x9209), //获取所有设备属性
     SDIO_OPEN_SESSION(0x9210), // 开启 sdio 会话
     SDIO_SET_CONTENTS_TRANSFER_MODE(0x9212), // 开启/关闭内容传输模式
+    SDIO_GET_DEVICE_DESCRIPTION_FILE(0x9222), // 获取设备描述文件 (DD_XML=1, DID_XML=2)
     SDIO_GET_DISPLAY_STRING_LIST(0x9215), // 获取显示字符串列表
     SDIO_GET_VENDOR_CODE_VERSION(0x9216), // 获取实际 SDIO 版本
     SDIO_GET_EXT_DEVICE_PROP(0x9251); // 按 DevicePropCode 获取单个设备属性

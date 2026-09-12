@@ -8,6 +8,15 @@ import android.hardware.usb.UsbInterface
 import android.util.Log
 import cn.ykcryobs.ptportal.AppContextHolder
 import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -30,6 +39,9 @@ class UsbTransport {
     @Volatile
     var interruptInEndpoint: UsbEndpoint? = null
         private set
+
+    private var interruptJob: Job? = null
+    private var ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var ptpInterface: UsbInterface? = null
 
@@ -77,7 +89,54 @@ class UsbTransport {
         true
     }
 
+    fun startInterruptListener() {
+        if (interruptJob?.isActive == true) return
+        if (ioScope.isActive.not()) {
+            ioScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        }
+        interruptJob = ioScope.launch {
+            val buffer = ByteArray(PtpConstants.EVENT_BUFFER_SIZE)
+            while (isActive) {
+                try {
+                    val ret = interruptTransferIn(buffer)
+                    if (ret < PtpConstants.HEADER_SIZE) {
+                        Log.e(PtpConstants.LOG_TAG, "读取事件包失败: 期望：>=12 实际：$ret")
+                        continue
+                    }
+
+                    val respBuf = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
+                    val length = respBuf.getInt()
+                    val type = respBuf.getShort().toInt() and 0xFFFF
+                    val code = respBuf.getShort().toInt() and 0xFFFF
+                    val tId = respBuf.getInt()
+
+
+                    val paramCount = (ret - PtpConstants.HEADER_SIZE) / 4
+                    val params = IntArray(paramCount) { respBuf.getInt() }
+                    Log.d(PtpConstants.LOG_TAG, "eventCode:$code")
+//                        EventManager.instance.postEvent(
+//                            RawPtpEvent(
+//                                eventCode.toInt(), params.toIntArray()
+//                            )
+//                        )
+                } catch (ex: Exception) {
+                    Log.e(PtpConstants.LOG_TAG, "aaaa$ex")
+                    break
+                }
+            }
+        }
+    }
+
+    fun stopInterruptListener() {
+        interruptJob?.cancel()
+        interruptJob = null
+    }
+
     fun close() = lock.withLock {
+
+        stopInterruptListener()
+        ioScope.cancel()
+
         val connSnap = connection
         val ifaceSnap = ptpInterface
 

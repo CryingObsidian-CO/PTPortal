@@ -95,6 +95,8 @@ class UsbCameraConnectionRepository(context: Context) : CameraConnectionReposito
                     return@launch
                 }
 
+                transport.startInterruptListener()
+
                 // 读取两块电池属性：0xD20E 电量档位、0xD218 剩余电量（均为 SDIO 0x9251）
                 val batteryLevelProp =
                     sdioManager.getExtDevicePropInfo(SdioPropCode.BATTERY_LEVEL.code)

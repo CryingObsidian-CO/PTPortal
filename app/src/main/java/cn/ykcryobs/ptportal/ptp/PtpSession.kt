@@ -5,14 +5,9 @@ import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
 import cn.ykcryobs.ptportal.ptp.constants.PtpContainerType
 import cn.ykcryobs.ptportal.ptp.constants.PtpResponseCode
 import cn.ykcryobs.ptportal.ptp.constants.PtpStandardOpCode
-import cn.ykcryobs.ptportal.ptp.constants.PtpEventCode
-import cn.ykcryobs.ptportal.ptp.constants.SdioPropCode
-import cn.ykcryobs.ptportal.ptp.model.IsEnabled
 import cn.ykcryobs.ptportal.ptp.model.PtpDataResponse
 import cn.ykcryobs.ptportal.ptp.model.PtpResponse
-import cn.ykcryobs.ptportal.ptp.model.PtpEvent
 import cn.ykcryobs.ptportal.ptp.model.ParsedStorageInfo
-import cn.ykcryobs.ptportal.ptp.parser.SdioExtDevicePropInfoParser
 import cn.ykcryobs.ptportal.ptp.parser.StorageInfoParser
 import cn.ykcryobs.ptportal.usb.UsbTransport
 import java.io.ByteArrayOutputStream
@@ -26,12 +21,12 @@ class PtpSession(val transport: UsbTransport) {
     private val transactionId = AtomicInteger(1)
 
     fun openSession(): Boolean {
-        var resp = sendCommandWithDataIn(PtpStandardOpCode.SDIO_OPEN_SESSION, 0x01, 0x02)
+        var resp = sendCommandWithDataIn(PtpStandardOpCode.SDIO_OPEN_SESSION, 0x01, 0x01)
 //        var resp = sendCommand(PtpStandardOpCode.OPEN_SESSION, 0x01)
         if (resp.respCode == PtpResponseCode.SESSION_ALREADY_OPEN) {
             Log.w(PtpConstants.LOG_TAG, "检测到旧 session 未关闭，先关闭再重试")
             closeSession()
-            resp = sendCommandWithDataIn(PtpStandardOpCode.SDIO_OPEN_SESSION, 0x01, 0x02)
+            resp = sendCommandWithDataIn(PtpStandardOpCode.SDIO_OPEN_SESSION, 0x01, 0x01)
 //            resp = sendCommand(PtpStandardOpCode.OPEN_SESSION, 0x01)
         }
         return if (resp.respCode == PtpResponseCode.OK) {
@@ -193,6 +188,8 @@ class PtpSession(val transport: UsbTransport) {
     }
 
     fun getStorageIds(): List<Int>? {
+//        sendCommandOnly(PtpStandardOpCode.GET_STORAGE_IDS)
+//        return listOf()
         val (resp, _, data) = sendCommandWithDataIn(PtpStandardOpCode.GET_STORAGE_IDS)
         if (resp != PtpResponseCode.OK) {
             Log.e(PtpConstants.LOG_TAG, "GetStorageIDs 失败: $resp")
