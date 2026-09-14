@@ -98,8 +98,21 @@ enum class SdioPropCode(
     BATTERY_REMAINING(
         0xD218, "Battery Remaining", ValueLabeler.EnumWithRaw(BatteryRemaining::class)
     ),
-    CONTENT_TRANSFER_ENABLE(0xD295, "Content Transfer Enable"); // 0x01=开启内容传输模式
+
+    // Slot 1 (0xD248-0xD24A)
+    SLOT1_STATUS(0xD248, "SLOT1 Status", ValueLabeler.Enum(SLOTStatus::class)),
+    SLOT1_REMAINING_NUMBER(0xD249, "SLOT1 Remaining number shots", ValueLabeler.Raw),
+    SLOT1_REMAINING_SHOOTING_TIME(0xD24A, "Media SLOT1 Remaining shooting time", ValueLabeler.Raw),
+
+    // Slot 2 (0xD256-0xD258)
+    SLOT2_STATUS(0xD256, "SLOT2 Status", ValueLabeler.Enum(SLOTStatus::class)),
+    SLOT2_REMAINING_NUMBER(0xD257, "SLOT2 Remaining number shots", ValueLabeler.Raw),
+    SLOT2_REMAINING_SHOOTING_TIME(0xD258, "Media SLOT2 Remaining shooting time", ValueLabeler.Raw),
+
+    CONTENT_TRANSFER_ENABLE(0xD295, "Content Transfer Enable");// 0x01=开启内容传输模式
+
     // TODO 等待补全
+
 
     override fun toString(): String = "${description}(0x%04X)".format(code)
 

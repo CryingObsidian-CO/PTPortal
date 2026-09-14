@@ -729,3 +729,20 @@ enum class BatteryLevel(override val code: Long, override val label: String) : E
 enum class BatteryRemaining(override val code: Long, override val label: String) : EnumEntry {
     UNTAKEN(0xFF, "untaken")
 }
+
+/**
+ * 插槽状态
+ * 对应属性码 0xD248,0xD256 (SLOT Status)
+ *
+ */
+enum class SLOTStatus(override val code: Long, override val label: String) : EnumEntry {
+    OK(0x01, "OK"),
+    NoCard(0x02, "No Card"),
+    CardError(0x03, "Card Error"),
+    CardRecognizingOrCardLockedAndDBError(0x04, "Card Recognizing / Card Locked and DB Error"),
+    DBError(0x05, "DB Error"),
+    CardRecognizing(0x06, "Card Recognizing"),
+    CardLockedAndDBError(0x07, "Card Locked and DB Error"),
+    DBErrorCannotRepairNeedFormat(0x08, "DB Error (Cannot Repair and Need Format)"),
+    CardErrorReadOnlyMedia(0x09, "Card Error (Read-Only Media)");
+}

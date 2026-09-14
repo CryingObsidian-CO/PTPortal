@@ -40,6 +40,7 @@ import cn.ykcryobs.ptportal.R
 import cn.ykcryobs.ptportal.domain.connection.CameraDeviceInfo
 import cn.ykcryobs.ptportal.domain.connection.ConnectionState
 import cn.ykcryobs.ptportal.ptp.constants.BatteryLevel
+import cn.ykcryobs.ptportal.ptp.constants.SLOTStatus
 import cn.ykcryobs.ptportal.ui.components.PTCard
 import cn.ykcryobs.ptportal.ui.components.statusColor
 import cn.ykcryobs.ptportal.ui.components.statusIcon
@@ -111,16 +112,67 @@ private fun DeviceInfoGrid(info: CameraDeviceInfo) {
 
                 }, text = "${info.batteryPercent}%"
             )
-            InfoBadge(
-                icon = { Icon(Icons.Filled.SdStorage, null, Modifier.height(16.dp)) },
-                text = "%.0f/%.0f GB".format(info.storageFreeGb, info.storageTotalGb)
-            )
+            // Slot 1
+            if (shouldShowSlot(info.slot1Status)) {
+                SlotInfoBadge(
+                    slotLabel = "Slot 1",
+                    status = info.slot1Status,
+                    remainingPhotoCount = info.slot1RemainingPhotoCount,
+                    remainingVideoTimeSec = info.slot1RemainingVideoTimeSec,
+                )
+            }
+            // Slot 2
+            if (shouldShowSlot(info.slot2Status)) {
+                SlotInfoBadge(
+                    slotLabel = "Slot 2",
+                    status = info.slot2Status,
+                    remainingPhotoCount = info.slot2RemainingPhotoCount,
+                    remainingVideoTimeSec = info.slot2RemainingVideoTimeSec,
+                )
+            }
             InfoBadge(
                 icon = { Icon(Icons.Filled.Usb, null, Modifier.height(16.dp)) },
                 text = "v${info.firmwareVersion}"
             )
         }
     }
+}
+
+private fun shouldShowSlot(status: SLOTStatus?): Boolean = status == SLOTStatus.OK
+
+@Composable
+private fun SlotInfoBadge(
+    slotLabel: String,
+    status: SLOTStatus?,
+    remainingPhotoCount: Int,
+    remainingVideoTimeSec: Int,
+) {
+    // NOTE 不在当前状态的会返回 0，基于此选择显示张数/时间
+    val displayText = when {
+        remainingPhotoCount > 0 -> "$slotLabel: $remainingPhotoCount 张"
+        remainingVideoTimeSec > 0 -> "$slotLabel: ${formatVideoTime(remainingVideoTimeSec)}"
+        else -> "$slotLabel: --"
+    }
+
+    InfoBadge(
+        icon = {
+            Icon(
+                slotIconFor(status), null, Modifier.height(16.dp)
+            )
+        }, text = displayText
+    )
+}
+
+private fun slotIconFor(status: SLOTStatus?): ImageVector = when (status) {
+    SLOTStatus.OK -> Icons.Filled.SdStorage
+    SLOTStatus.NoCard -> Icons.Filled.SdStorage
+    else -> Icons.Filled.SdStorage
+}
+
+private fun formatVideoTime(seconds: Int): String {
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    return if (hours > 0) "${hours}h ${minutes}m" else "${minutes}m"
 }
 
 private fun batteryIconFor(level: BatteryLevel?): ImageVector = when (level) {

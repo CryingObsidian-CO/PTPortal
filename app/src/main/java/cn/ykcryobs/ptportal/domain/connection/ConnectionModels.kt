@@ -2,6 +2,7 @@ package cn.ykcryobs.ptportal.domain.connection
 
 import kotlinx.coroutines.flow.StateFlow
 import cn.ykcryobs.ptportal.ptp.constants.BatteryLevel
+import cn.ykcryobs.ptportal.ptp.constants.SLOTStatus
 
 enum class TransportType {
     USB, WiFi,
@@ -23,12 +24,14 @@ data class CameraDeviceInfo(
     val model: String,
     val firmwareVersion: String,
     val batteryPercent: Int,
-    val storageFreeGb: Double,
-    val storageTotalGb: Double,
     val batteryLevel: BatteryLevel? = null,
-) {
-    val batteryLevelLabel: String get() = batteryLevel?.label ?: "-"
-}
+    val slot1Status: SLOTStatus? = null,
+    val slot1RemainingPhotoCount: Int = 0,
+    val slot1RemainingVideoTimeSec: Int = 0,
+    val slot2Status: SLOTStatus? = null,
+    val slot2RemainingPhotoCount: Int = 0,
+    val slot2RemainingVideoTimeSec: Int = 0,
+)
 
 data class DiscoveredDevice(
     val id: String,

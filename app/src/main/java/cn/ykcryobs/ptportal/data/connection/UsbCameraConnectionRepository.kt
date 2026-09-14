@@ -1,7 +1,6 @@
 package cn.ykcryobs.ptportal.data.connection
 
 import android.content.Context
-import android.util.Log
 import android.hardware.usb.UsbDevice
 import cn.ykcryobs.ptportal.domain.connection.CameraConnectionRepository
 import cn.ykcryobs.ptportal.domain.connection.CameraDeviceInfo
@@ -9,11 +8,12 @@ import cn.ykcryobs.ptportal.domain.connection.ConnectionState
 import cn.ykcryobs.ptportal.domain.connection.DiscoveredDevice
 import cn.ykcryobs.ptportal.domain.connection.PairedDevice
 import cn.ykcryobs.ptportal.domain.connection.TransportType
+import cn.ykcryobs.ptportal.ptp.EventManager
 import cn.ykcryobs.ptportal.ptp.PtpSession
 import cn.ykcryobs.ptportal.ptp.SdioManager
-import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
 import cn.ykcryobs.ptportal.ptp.constants.SdioPropCode
 import cn.ykcryobs.ptportal.ptp.constants.BatteryLevel
+import cn.ykcryobs.ptportal.ptp.constants.SLOTStatus
 import cn.ykcryobs.ptportal.ptp.model.PropValue
 import cn.ykcryobs.ptportal.ptp.parser.DeviceInfoParser
 import cn.ykcryobs.ptportal.usb.UsbDeviceDetector
@@ -40,6 +40,7 @@ class UsbCameraConnectionRepository(context: Context) : CameraConnectionReposito
 
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
     override val connectionState: StateFlow<ConnectionState> = _connectionState
+    private var eventCallback: EventManager.EventCallback<RawPtpEvent>? = null
 
     private val _pairedDevices = MutableStateFlow<List<PairedDevice>>(emptyList())
     override val pairedDevices: StateFlow<List<PairedDevice>> = _pairedDevices
@@ -102,52 +103,65 @@ class UsbCameraConnectionRepository(context: Context) : CameraConnectionReposito
                     sdioManager.getExtDevicePropInfo(SdioPropCode.BATTERY_LEVEL.code)
                 val batteryRemainingProp =
                     sdioManager.getExtDevicePropInfo(SdioPropCode.BATTERY_REMAINING.code)
+                // 读取存储属性
+                val slot1StatusProp =
+                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT1_STATUS.code)
+                val slot1RemainingPhotoCountProp =
+                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT1_REMAINING_NUMBER.code)
+                val slot1RemainingVideoTimeProp =
+                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT1_REMAINING_SHOOTING_TIME.code)
+                // NOTE 需要额外检查是否可用
+//                val slot2StatusProp =
+//                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT2_STATUS.code)
+//                val slot2RemainingPhotoCountProp =
+//                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT2_REMAINING_NUMBER.code)
+//                val slot2RemainingVideoTimeProp =
+//                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT2_REMAINING_SHOOTING_TIME.code)
+
                 val batteryRemainingRaw =
-                    (batteryRemainingProp?.currentValue as? PropValue.Scalar)?.value?.toInt() ?: 0
+                    (batteryRemainingProp?.currentValue as PropValue.Scalar).value.toInt()
                 val batteryLevel =
-                    (batteryLevelProp?.currentValue as? PropValue.Scalar)?.value?.toInt()
-                        ?.let { c -> BatteryLevel.entries.firstOrNull { it.code == c.toLong() } }
+                    (batteryLevelProp?.currentValue as PropValue.Scalar).value.toInt()
+                        .let { c -> BatteryLevel.entries.firstOrNull { it.code == c.toLong() } }
+                val slot1Status = (slot1StatusProp?.currentValue as PropValue.Scalar).value.toInt()
+                    .let { c -> SLOTStatus.entries.firstOrNull { it.code == c.toLong() } }
+                val slot1RemainingPhotoCount =
+                    (slot1RemainingPhotoCountProp?.currentValue as PropValue.Scalar).value.toInt()
+                val slot1RemainingVideoTime =
+                    (slot1RemainingVideoTimeProp?.currentValue as PropValue.Scalar).value.toInt()
+
+//                val slot2Status = (slot2StatusProp?.currentValue as PropValue.Scalar).value.toInt()
+//                    .let { c -> SLOTStatus.entries.firstOrNull { it.code == c.toLong() } }
+//                val slot2RemainingPhotoCount =
+//                    (slot2RemainingPhotoCountProp?.currentValue as PropValue.Scalar).value.toInt()
+//                val slot2RemainingVideoTime =
+//                    (slot2RemainingVideoTimeProp?.currentValue as PropValue.Scalar).value.toInt()
+
 
                 val raw = ptpSession.getDeviceInfo()
                 val parsed = raw?.let { DeviceInfoParser.parse(it) }
                 val info = if (parsed != null) {
-                    val (storageFreeGb, storageTotalGb) = readStorageCapacity()
                     CameraDeviceInfo(
                         manufacturer = parsed.manufacturer,
                         model = parsed.model,
                         firmwareVersion = parsed.firmwareVersion,
                         batteryPercent = batteryRemainingRaw,
-                        storageFreeGb = storageFreeGb,
-                        storageTotalGb = storageTotalGb,
-
                         batteryLevel = batteryLevel,
+                        slot1Status = slot1Status,
+                        slot1RemainingPhotoCount = slot1RemainingPhotoCount,
+                        slot1RemainingVideoTimeSec = slot1RemainingVideoTime,
+//                        slot2Status = slot2Status,
+//                        slot2RemainingPhotoCount = slot2RemainingPhotoCount,
+//                        slot2RemainingVideoTimeSec = slot2RemainingVideoTime,
                     )
                 } else {
-                    CameraDeviceInfo("?", "?", "?", 0, 0.0, 0.0)
+                    CameraDeviceInfo("?", "?", "?", 0, null, null, 0, 0, null, 0, 0)
                 }
                 _connectionState.value = ConnectionState.Connected(TransportType.USB, info)
             } catch (e: Exception) {
                 _connectionState.value = ConnectionState.Error(e.message ?: "连接异常")
             }
         }
-    }
-
-
-    private fun readStorageCapacity(): Pair<Double, Double> {
-        val ids = ptpSession.getStorageIds()
-        if (ids.isNullOrEmpty()) {
-            Log.w(PtpConstants.LOG_TAG, "GetStorageIDs 返回空，容量显示 0")
-            return 0.0 to 0.0
-        }
-        var totalBytes = 0L
-        var freeBytes = 0L
-        for (id in ids) {
-            val info = ptpSession.getStorageInfo(id) ?: continue
-            totalBytes += info.maxCapacityBytes
-            freeBytes += info.freeSpaceBytes
-        }
-        val bytesToGb = 1.0 / (1024 * 1024 * 1024)
-        return freeBytes * bytesToGb to totalBytes * bytesToGb
     }
 
     override fun connectViaUsb(onSuccess: () -> Unit, onError: (String) -> Unit) {

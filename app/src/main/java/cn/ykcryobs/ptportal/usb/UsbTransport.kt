@@ -8,6 +8,9 @@ import android.hardware.usb.UsbInterface
 import android.util.Log
 import cn.ykcryobs.ptportal.AppContextHolder
 import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
+import cn.ykcryobs.ptportal.ptp.EventManager
+import cn.ykcryobs.ptportal.ptp.constants.PtpContainerType
+import cn.ykcryobs.ptportal.ptp.model.RawPtpEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -100,25 +103,25 @@ class UsbTransport {
                 try {
                     val ret = interruptTransferIn(buffer)
                     if (ret < PtpConstants.HEADER_SIZE) {
-                        Log.e(PtpConstants.LOG_TAG, "读取事件包失败: 期望：>=12 实际：$ret")
+//                        Log.e(PtpConstants.LOG_TAG, "读取事件包失败: 期望：>=12 实际：$ret")
                         continue
                     }
 
                     val respBuf = ByteBuffer.wrap(buffer).order(ByteOrder.LITTLE_ENDIAN)
-                    val length = respBuf.getInt()
+                    respBuf.getInt()
                     val type = respBuf.getShort().toInt() and 0xFFFF
                     val code = respBuf.getShort().toInt() and 0xFFFF
-                    val tId = respBuf.getInt()
+                    respBuf.getInt()
 
+                    if (type != PtpContainerType.EVENT.code) {
+                        Log.e(PtpConstants.LOG_TAG, "非事件包通过中断口发送")
+                        continue
+                    }
 
                     val paramCount = (ret - PtpConstants.HEADER_SIZE) / 4
                     val params = IntArray(paramCount) { respBuf.getInt() }
                     Log.d(PtpConstants.LOG_TAG, "eventCode:$code")
-//                        EventManager.instance.postEvent(
-//                            RawPtpEvent(
-//                                eventCode.toInt(), params.toIntArray()
-//                            )
-//                        )
+                    EventManager.instance.postEvent(RawPtpEvent(code, params))
                 } catch (ex: Exception) {
                     Log.e(PtpConstants.LOG_TAG, "aaaa$ex")
                     break

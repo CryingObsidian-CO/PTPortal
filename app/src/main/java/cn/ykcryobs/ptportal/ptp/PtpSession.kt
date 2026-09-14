@@ -186,27 +186,4 @@ class PtpSession(val transport: UsbTransport) {
         }
         return data
     }
-
-    fun getStorageIds(): List<Int>? {
-//        sendCommandOnly(PtpStandardOpCode.GET_STORAGE_IDS)
-//        return listOf()
-        val (resp, _, data) = sendCommandWithDataIn(PtpStandardOpCode.GET_STORAGE_IDS)
-        if (resp != PtpResponseCode.OK) {
-            Log.e(PtpConstants.LOG_TAG, "GetStorageIDs 失败: $resp")
-        }
-        Log.d(PtpConstants.LOG_TAG, data.contentToString())
-        return StorageInfoParser.parseStorageIds(data)
-    }
-
-    fun getStorageInfo(storageId: Int): ParsedStorageInfo? {
-        val (resp, _, data) = sendCommandWithDataIn(PtpStandardOpCode.GET_STORAGE_INFO, storageId)
-        if (resp != PtpResponseCode.OK) {
-            Log.e(
-                PtpConstants.LOG_TAG,
-                "GetStorageInfo 失败: storageId=0x${storageId.toString(16)}, $resp"
-            )
-            return null
-        }
-        return StorageInfoParser.parse(data)
-    }
 }
