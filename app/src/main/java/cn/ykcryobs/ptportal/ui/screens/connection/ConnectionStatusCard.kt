@@ -39,8 +39,8 @@ import androidx.compose.ui.unit.dp
 import cn.ykcryobs.ptportal.R
 import cn.ykcryobs.ptportal.domain.connection.CameraDeviceInfo
 import cn.ykcryobs.ptportal.domain.connection.ConnectionState
-import cn.ykcryobs.ptportal.ptp.constants.BatteryLevel
-import cn.ykcryobs.ptportal.ptp.constants.SLOTStatus
+import cn.ykcryobs.ptportal.ptp.codec.constants.BatteryLevel
+import cn.ykcryobs.ptportal.ptp.codec.constants.SLOTStatus
 import cn.ykcryobs.ptportal.ui.components.PTCard
 import cn.ykcryobs.ptportal.ui.components.statusColor
 import cn.ykcryobs.ptportal.ui.components.statusIcon

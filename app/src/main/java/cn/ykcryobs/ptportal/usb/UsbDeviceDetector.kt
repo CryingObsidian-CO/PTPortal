@@ -9,7 +9,7 @@ import android.hardware.usb.UsbManager
 import android.util.Log
 import androidx.core.content.IntentCompat
 import cn.ykcryobs.ptportal.AppContextHolder
-import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
+import cn.ykcryobs.ptportal.ptp.common.PtpConstants
 
 class UsbDeviceDetector(
     private val onDeviceAttached: (UsbDevice) -> Unit,

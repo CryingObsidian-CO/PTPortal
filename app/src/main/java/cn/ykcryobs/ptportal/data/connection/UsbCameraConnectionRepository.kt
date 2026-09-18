@@ -8,14 +8,16 @@ import cn.ykcryobs.ptportal.domain.connection.ConnectionState
 import cn.ykcryobs.ptportal.domain.connection.DiscoveredDevice
 import cn.ykcryobs.ptportal.domain.connection.PairedDevice
 import cn.ykcryobs.ptportal.domain.connection.TransportType
-import cn.ykcryobs.ptportal.ptp.EventManager
-import cn.ykcryobs.ptportal.ptp.PtpSession
-import cn.ykcryobs.ptportal.ptp.SdioManager
-import cn.ykcryobs.ptportal.ptp.constants.SdioPropCode
-import cn.ykcryobs.ptportal.ptp.constants.BatteryLevel
-import cn.ykcryobs.ptportal.ptp.constants.SLOTStatus
-import cn.ykcryobs.ptportal.ptp.model.PropValue
-import cn.ykcryobs.ptportal.ptp.parser.DeviceInfoParser
+import cn.ykcryobs.ptportal.ptp.codec.constants.BatteryLevel
+import cn.ykcryobs.ptportal.ptp.codec.constants.SdioPropCode
+import cn.ykcryobs.ptportal.ptp.codec.constants.SLOTStatus
+import cn.ykcryobs.ptportal.ptp.codec.model.PropValue
+import cn.ykcryobs.ptportal.ptp.codec.model.RawPtpEvent
+import cn.ykcryobs.ptportal.ptp.codec.parser.DeviceInfoParser
+import cn.ykcryobs.ptportal.ptp.core.PtpSession
+import cn.ykcryobs.ptportal.ptp.event.EventManager
+import cn.ykcryobs.ptportal.ptp.protocol.SdioCommands
+import cn.ykcryobs.ptportal.ptp.service.SdioHandshakeService
 import cn.ykcryobs.ptportal.usb.UsbDeviceDetector
 import cn.ykcryobs.ptportal.usb.UsbPermissionHelper
 import cn.ykcryobs.ptportal.usb.UsbTransport
@@ -33,7 +35,8 @@ class UsbCameraConnectionRepository(context: Context) : CameraConnectionReposito
 
     private val transport = UsbTransport()
     private val ptpSession = PtpSession(transport)
-    private val sdioManager = SdioManager(ptpSession)
+    private val sdioCommands = SdioCommands(ptpSession)
+    private val sdioHandshakeService = SdioHandshakeService(sdioCommands)
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var connectJob: Job? = null
@@ -89,7 +92,7 @@ class UsbCameraConnectionRepository(context: Context) : CameraConnectionReposito
                     transport.close()
                     return@launch
                 }
-                if (!sdioManager.performFullHandshake()) {
+                if (!sdioHandshakeService.performFullHandshake()) {
                     _connectionState.value = ConnectionState.Error("SDIO 握手失败")
                     ptpSession.closeSession()
                     transport.close()
@@ -100,23 +103,23 @@ class UsbCameraConnectionRepository(context: Context) : CameraConnectionReposito
 
                 // 读取两块电池属性：0xD20E 电量档位、0xD218 剩余电量（均为 SDIO 0x9251）
                 val batteryLevelProp =
-                    sdioManager.getExtDevicePropInfo(SdioPropCode.BATTERY_LEVEL.code)
+                    sdioCommands.getExtDevicePropInfo(SdioPropCode.BATTERY_LEVEL.code)
                 val batteryRemainingProp =
-                    sdioManager.getExtDevicePropInfo(SdioPropCode.BATTERY_REMAINING.code)
+                    sdioCommands.getExtDevicePropInfo(SdioPropCode.BATTERY_REMAINING.code)
                 // 读取存储属性
                 val slot1StatusProp =
-                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT1_STATUS.code)
+                    sdioCommands.getExtDevicePropInfo(SdioPropCode.SLOT1_STATUS.code)
                 val slot1RemainingPhotoCountProp =
-                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT1_REMAINING_NUMBER.code)
+                    sdioCommands.getExtDevicePropInfo(SdioPropCode.SLOT1_REMAINING_NUMBER.code)
                 val slot1RemainingVideoTimeProp =
-                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT1_REMAINING_SHOOTING_TIME.code)
+                    sdioCommands.getExtDevicePropInfo(SdioPropCode.SLOT1_REMAINING_SHOOTING_TIME.code)
                 // NOTE 需要额外检查是否可用
 //                val slot2StatusProp =
-//                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT2_STATUS.code)
+//                    sdioCommands.getExtDevicePropInfo(SdioPropCode.SLOT2_STATUS.code)
 //                val slot2RemainingPhotoCountProp =
-//                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT2_REMAINING_NUMBER.code)
+//                    sdioCommands.getExtDevicePropInfo(SdioPropCode.SLOT2_REMAINING_NUMBER.code)
 //                val slot2RemainingVideoTimeProp =
-//                    sdioManager.getExtDevicePropInfo(SdioPropCode.SLOT2_REMAINING_SHOOTING_TIME.code)
+//                    sdioCommands.getExtDevicePropInfo(SdioPropCode.SLOT2_REMAINING_SHOOTING_TIME.code)
 
                 val batteryRemainingRaw =
                     (batteryRemainingProp?.currentValue as PropValue.Scalar).value.toInt()

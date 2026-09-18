@@ -1,8 +1,8 @@
 package cn.ykcryobs.ptportal.domain.connection
 
 import kotlinx.coroutines.flow.StateFlow
-import cn.ykcryobs.ptportal.ptp.constants.BatteryLevel
-import cn.ykcryobs.ptportal.ptp.constants.SLOTStatus
+import cn.ykcryobs.ptportal.ptp.codec.constants.BatteryLevel
+import cn.ykcryobs.ptportal.ptp.codec.constants.SLOTStatus
 
 enum class TransportType {
     USB, WiFi,

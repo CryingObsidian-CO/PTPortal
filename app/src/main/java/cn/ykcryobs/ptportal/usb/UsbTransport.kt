@@ -7,10 +7,10 @@ import android.hardware.usb.UsbEndpoint
 import android.hardware.usb.UsbInterface
 import android.util.Log
 import cn.ykcryobs.ptportal.AppContextHolder
-import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
-import cn.ykcryobs.ptportal.ptp.EventManager
-import cn.ykcryobs.ptportal.ptp.constants.PtpContainerType
-import cn.ykcryobs.ptportal.ptp.model.RawPtpEvent
+import cn.ykcryobs.ptportal.ptp.common.PtpConstants
+import cn.ykcryobs.ptportal.ptp.event.EventManager
+import cn.ykcryobs.ptportal.ptp.codec.constants.PtpContainerType
+import cn.ykcryobs.ptportal.ptp.codec.model.RawPtpEvent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

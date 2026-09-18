@@ -11,7 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import cn.ykcryobs.ptportal.data.connection.UsbCameraConnectionRepository
 import cn.ykcryobs.ptportal.data.preferences.SharedPreferencesUserPreferencesRepository
 import cn.ykcryobs.ptportal.domain.preferences.ThemeMode
-import cn.ykcryobs.ptportal.ptp.constants.PtpConstants
+import cn.ykcryobs.ptportal.ptp.common.PtpConstants
 import cn.ykcryobs.ptportal.ui.navigation.PTScaffold
 import cn.ykcryobs.ptportal.ui.theme.PTPortalTheme
 
