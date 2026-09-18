@@ -36,14 +36,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cn.ykcryobs.ptportal.R
+import cn.ykcryobs.ptportal.domain.remote.CameraControlRepository
 import cn.ykcryobs.ptportal.domain.remote.RecordingState
-import cn.ykcryobs.ptportal.mock.MockCameraControlRepository
+import cn.ykcryobs.ptportal.ui.common.viewModelFactory
 
 @Composable
-fun RemoteScreen(modifier: Modifier = Modifier) {
-    val repository = remember { MockCameraControlRepository() }
+fun RemoteScreen(
+    repository: CameraControlRepository,
+    modifier: Modifier = Modifier,
+) {
     val viewModel: RemoteViewModel =
-        viewModel(factory = simpleFactory { RemoteViewModel(repository) })
+        viewModel(factory = viewModelFactory { RemoteViewModel(repository) })
 
     val settings by viewModel.settings.collectAsState()
     val recording by viewModel.recordingState.collectAsState()
@@ -175,7 +178,7 @@ private fun ShutterRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = "22222",
+            text = "",
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.weight(1f)
@@ -215,7 +218,7 @@ private fun ShutterRow(
                 )
             }
             Text(
-                text = "22222",
+                text = "",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -228,10 +231,3 @@ private fun formatDuration(totalSeconds: Int): String {
     val seconds = totalSeconds % 60
     return "%02d:%02d".format(minutes, seconds)
 }
-
-private fun <T> simpleFactory(create: () -> T): androidx.lifecycle.ViewModelProvider.Factory =
-    object : androidx.lifecycle.ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <VM : androidx.lifecycle.ViewModel> create(modelClass: Class<VM>): VM =
-            create() as VM
-    }

@@ -42,9 +42,6 @@ import cn.ykcryobs.ptportal.domain.connection.ConnectionState
 import cn.ykcryobs.ptportal.ptp.codec.constants.BatteryLevel
 import cn.ykcryobs.ptportal.ptp.codec.constants.SLOTStatus
 import cn.ykcryobs.ptportal.ui.components.PTCard
-import cn.ykcryobs.ptportal.ui.components.statusColor
-import cn.ykcryobs.ptportal.ui.components.statusIcon
-import cn.ykcryobs.ptportal.ui.components.StatusLevel
 
 @Composable
 fun ConnectionStatusCard(

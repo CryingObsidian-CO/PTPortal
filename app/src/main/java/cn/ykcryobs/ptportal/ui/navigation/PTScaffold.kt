@@ -24,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import cn.ykcryobs.ptportal.domain.preferences.UserPreferencesRepository
 import cn.ykcryobs.ptportal.domain.connection.CameraConnectionRepository
+import cn.ykcryobs.ptportal.domain.remote.CameraControlRepository
 
 private val BottomNavMaxWidth = 600
 private val RailNavMaxWidth = 840
@@ -32,6 +33,7 @@ private val RailNavMaxWidth = 840
 fun PTScaffold(
     userPreferencesRepository: UserPreferencesRepository,
     connectionRepository: CameraConnectionRepository,
+    cameraControlRepository: CameraControlRepository,
 ) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -82,6 +84,7 @@ fun PTScaffold(
                 navController = navController,
                 userPreferencesRepository = userPreferencesRepository,
                 connectionRepository = connectionRepository,
+                cameraControlRepository = cameraControlRepository,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding),
@@ -127,6 +130,7 @@ fun PTScaffold(
                 navController = navController,
                 userPreferencesRepository = userPreferencesRepository,
                 connectionRepository = connectionRepository,
+                cameraControlRepository = cameraControlRepository,
                 modifier = Modifier
                     .fillMaxSize()
                     .weight(1f),

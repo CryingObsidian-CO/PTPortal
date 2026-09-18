@@ -8,8 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import cn.ykcryobs.ptportal.data.connection.UsbCameraConnectionRepository
-import cn.ykcryobs.ptportal.data.preferences.SharedPreferencesUserPreferencesRepository
+import cn.ykcryobs.ptportal.di.AppContainer
 import cn.ykcryobs.ptportal.domain.preferences.ThemeMode
 import cn.ykcryobs.ptportal.ptp.common.PtpConstants
 import cn.ykcryobs.ptportal.ui.navigation.PTScaffold
@@ -17,8 +16,7 @@ import cn.ykcryobs.ptportal.ui.theme.PTPortalTheme
 
 class MainActivity : ComponentActivity() {
 
-    private lateinit var userPreferencesRepository: SharedPreferencesUserPreferencesRepository
-    private lateinit var connectionRepository: UsbCameraConnectionRepository
+    private lateinit var container: AppContainer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.d(PtpConstants.LOG_TAG, "App onCreate 启动成功！！！")
@@ -26,12 +24,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         AppContextHolder.init(this)
-        userPreferencesRepository = SharedPreferencesUserPreferencesRepository(this)
-        connectionRepository = UsbCameraConnectionRepository(this)
-        connectionRepository.start()
+        container = AppContainer(this)
+        container.usbCameraRepository.start()
 
         setContent {
-            val preferences by userPreferencesRepository.preferences.collectAsState()
+            val preferences by container.preferencesRepository.preferences.collectAsState()
             val systemUsesDarkTheme = isSystemInDarkTheme()
             val useDarkTheme = when (preferences.themeMode) {
                 ThemeMode.System -> systemUsesDarkTheme
@@ -40,13 +37,17 @@ class MainActivity : ComponentActivity() {
             }
 
             PTPortalTheme(darkTheme = useDarkTheme) {
-                PTScaffold(userPreferencesRepository, connectionRepository)
+                PTScaffold(
+                    userPreferencesRepository = container.preferencesRepository,
+                    connectionRepository = container.connectionRepository,
+                    cameraControlRepository = container.cameraControlRepository,
+                )
             }
         }
     }
 
     override fun onDestroy() {
-        connectionRepository.release()
+        container.release()
         super.onDestroy()
     }
 }

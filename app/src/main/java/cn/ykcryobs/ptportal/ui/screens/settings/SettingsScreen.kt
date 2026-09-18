@@ -1,8 +1,5 @@
 package cn.ykcryobs.ptportal.ui.screens.settings
 
-import android.app.LocaleManager
-import android.content.Context
-import android.os.LocaleList
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -35,10 +32,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cn.ykcryobs.ptportal.R
+import cn.ykcryobs.ptportal.data.system.AppLocaleManager
+import cn.ykcryobs.ptportal.data.system.appVersionName
+import cn.ykcryobs.ptportal.ui.common.viewModelFactory
 import cn.ykcryobs.ptportal.domain.preferences.AppLanguage
 import cn.ykcryobs.ptportal.domain.preferences.DefaultConnectionMode
 import cn.ykcryobs.ptportal.domain.preferences.ThemeMode
@@ -55,7 +53,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val viewModel: SettingsViewModel = viewModel(
-        factory = simpleFactory { SettingsViewModel(repository) },
+        factory = viewModelFactory { SettingsViewModel(repository) },
     )
     val preferences by viewModel.preferences.collectAsState()
     var showLicenses by remember { mutableStateOf(false) }
@@ -167,7 +165,7 @@ fun SettingsScreen(
                         onSelect = { index ->
                             val language = AppLanguage.entries[index]
                             viewModel.setLanguage(language)
-                            applyAppLanguage(context, language)
+                            AppLocaleManager.applyLanguage(context, language)
                         },
                     )
                 }
@@ -178,7 +176,7 @@ fun SettingsScreen(
             SectionHeader(title = stringResource(R.string.settings_group_about))
         }
         item {
-            val versionName = LocalContext.current.versionName()
+            val versionName = LocalContext.current.appVersionName()
             PTCard {
                 Column(
                     modifier = Modifier.padding(16.dp),
@@ -317,22 +315,3 @@ private fun LicensesDialog(onDismissRequest: () -> Unit) {
         },
     )
 }
-
-private fun Context.versionName(): String {
-    return packageManager.getPackageInfo(packageName, 0).versionName ?: "--"
-}
-
-private fun applyAppLanguage(context: Context, language: AppLanguage) {
-    val localeManager = context.getSystemService(LocaleManager::class.java) ?: return
-    localeManager.applicationLocales = when (language) {
-        AppLanguage.System -> LocaleList.getEmptyLocaleList()
-        AppLanguage.Chinese -> LocaleList.forLanguageTags("zh-CN")
-        AppLanguage.English -> LocaleList.forLanguageTags("en")
-    }
-}
-
-private fun <T : ViewModel> simpleFactory(create: () -> T): ViewModelProvider.Factory =
-    object : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <VM : ViewModel> create(modelClass: Class<VM>): VM = create() as VM
-    }

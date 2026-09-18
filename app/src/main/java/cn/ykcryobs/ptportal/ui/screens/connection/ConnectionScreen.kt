@@ -44,6 +44,7 @@ import cn.ykcryobs.ptportal.domain.connection.ConnectionState
 import cn.ykcryobs.ptportal.domain.connection.PairedDevice
 import cn.ykcryobs.ptportal.ui.components.PTCard
 import cn.ykcryobs.ptportal.ui.components.SectionHeader
+import cn.ykcryobs.ptportal.ui.common.viewModelFactory
 
 private enum class ConnectionSubView {
     Main, Scan, Pairing,
@@ -55,7 +56,7 @@ fun ConnectionScreen(
     modifier: Modifier = Modifier,
 ) {
     val viewModel: ConnectionViewModel =
-        viewModel(factory = simpleFactory { ConnectionViewModel(repository) })
+        viewModel(factory = viewModelFactory { ConnectionViewModel(repository) })
 
     var subView by remember { mutableStateOf(ConnectionSubView.Main) }
     val connectionState by viewModel.connectionState.collectAsState()
@@ -301,10 +302,3 @@ private fun PairingView(
         }
     }
 }
-
-private fun <T> simpleFactory(create: () -> T): androidx.lifecycle.ViewModelProvider.Factory =
-    object : androidx.lifecycle.ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <VM : androidx.lifecycle.ViewModel> create(modelClass: Class<VM>): VM =
-            create() as VM
-    }

@@ -22,7 +22,6 @@ import cn.ykcryobs.ptportal.domain.remote.CameraSettings
 import cn.ykcryobs.ptportal.domain.remote.FocusMode
 import cn.ykcryobs.ptportal.domain.remote.ShootingMode
 import cn.ykcryobs.ptportal.domain.remote.WhiteBalanceMode
-import cn.ykcryobs.ptportal.ui.components.ParamChip
 
 @Composable
 fun ParameterPanel(
